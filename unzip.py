@@ -1,5 +1,13 @@
+'''
+参考
+https://qiita.com/sino20023/items/0314438d397240e56576
+'''
+
 import os
+import re
 import shutil
+import xml.etree.ElementTree as ET
+
 
 # ソースファイルの読み込み
 src_dir = 'workbench'
@@ -17,11 +25,22 @@ print(src_file_ext)
 print(out_dir)
 print(out_file_path)
 
-# 出力先ディレクトリの作成
-os.makedirs(out_dir, exist_ok=True)
+# zip ファイル化・展開
+os.makedirs(out_dir, exist_ok=True)           # 出力先ディレクトリの作成
+shutil.copy(src_file_path, out_file_path)     # ファイルのコピーと zip 化
+shutil.unpack_archive(out_file_path, out_dir) # zip ファイルの展開
 
-# ファイルのコピーと zip 化
-shutil.copy(src_file_path, out_file_path)
 
-# zip ファイルの展開
-shutil.unpack_archive(out_file_path, out_dir)
+# 展開した XML ファイルの読み込み
+xml_path = os.path.join(out_dir, 'xl/sharedStrings.xml')
+tree = ET.parse(xml_path) # XML ファイルの読み込み
+root = tree.getroot()     # 一番上の階層の要素を取り出す
+
+# 子階層に保管されているテキストをリストへ格納
+text_list = []
+for child in root:
+    for child_2 in child:
+        if child_2.text:
+            text_list.append(child_2.text)
+
+print(text_list)
