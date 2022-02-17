@@ -12,9 +12,9 @@ import sys
 
 import utils
 
-print('\n=========================')
-print('       Grep Office       ')
-print('=========================')
+print('\n========================')
+print('       Grep Files       ')
+print('========================')
 
 try:
 
@@ -27,7 +27,7 @@ try:
 
     if not os.path.exists(search_dir_input):
         print('\n入力されたディレクトリが見つかりませんでした。パスが正しいか確認してください。')
-        print('\nGrep Office を終了します。\n')
+        print('\nGrep Files を終了します。\n')
         sys.exit()
 
     search_txt = input('検索対象の文字列を入力してください: ')
@@ -72,4 +72,4 @@ try:
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
 
-print('\nGrep Office を終了します。\n')
+print('\nGrep Files を終了します。\n')
