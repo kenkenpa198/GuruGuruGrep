@@ -8,33 +8,68 @@ https://blog.honjala.net/entry/2016/06/24/005852
 
 import glob
 import os
-import re
+import sys
 
-# 検索対象のディレクトリとテキストを指定
-grep_dir = 'workbench/**'
-grep_txt = 'aaa'
+import utils
 
-# 指定ディレクトリのファイルのみをリスト化
-file_path_list = [p for p in glob.glob(grep_dir, recursive=True) if os.path.isfile(p)]
-print(file_path_list)
+print('\n=========================')
+print('       Grep Office       ')
+print('=========================')
 
-# 検索処理
-for file_path in file_path_list:
-    root, ext = os.path.splitext(file_path)
+try:
 
-    # 拡張子が Office 系の場合の条件分岐
-    # TODO: この辺に Office 系ソフトの場合の条件分岐とか unzip 処理を追加する
-    if ext in ('.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'):
-        continue
+    # 除外拡張子リストを指定
+    black_file_list = ['.doc', '.docx', '.xls', '.ppt', '.pptx']
 
-    # ファイルを開いて行ごとに検索
-    with open(file_path, encoding='utf-8') as f:
-        line_num = 1
-        for line in f:
-            m = re.search(grep_txt, line)
-            if m:
-                # 結果をプリントする
-                # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
-                out = '%s (%d, %d) : %s' % (file_path, line_num, m.start() + 1, line.rstrip())
-                print(out)
-            line_num = line_num + 1
+    # 検索対象のディレクトリと検索するテキストを指定
+    search_dir_input = input('\n検索対象のディレクトリパスを入力してください: ')
+    search_dir = os.path.join(search_dir_input, '**')
+
+    if not os.path.exists(search_dir_input):
+        print('\n入力されたディレクトリが見つかりませんでした。パスが正しいか確認してください。')
+        print('\nGrep Office を終了します。\n')
+        sys.exit()
+
+    search_txt = input('検索対象の文字列を入力してください: ')
+
+    print('\n入力された情報で検索を実行します。')
+    print('問題なければ Enter キーを押してください。')
+    input('キャンセルする場合は Ctrl + C を押してください。')
+
+    # 指定ディレクトリのファイルをリスト化
+    file_path_list = [p for p in glob.glob(search_dir, recursive=True) if os.path.isfile(p)]
+
+    print('\n▼ 検索結果')
+    print('----------------------------------------------------------\n')
+    # 検索処理
+    for file_path in file_path_list:
+
+        # 拡張子によって条件分岐するための前処理
+        root, ext = os.path.splitext(file_path)
+
+        try:
+            # 除外拡張子リストに存在する場合は処理をスキップする
+            if ext in black_file_list:
+                continue
+
+            # xlsx ファイルの場合の処理
+            if ext == '.xlsx':
+                f_list = utils.read_xlsx_text(file_path)
+                utils.print_result(f_list, search_txt, file_path)
+                continue
+
+            # ファイルを開いて行ごとに検索
+            with open(file_path, encoding='utf-8') as f:
+                f_list = f.readlines()
+                utils.print_result(f_list, search_txt, file_path)
+                continue
+        except UnicodeDecodeError as e:
+            continue
+            # print(utils.print_result_error(file_path, 'ファイルを読み込めませんでした。', e))
+
+    print('\n----------------------------------------------------------')
+
+except KeyboardInterrupt as e:
+    print('\nキーボード入力により処理を中断しました。')
+
+print('\nGrep Office を終了します。\n')
