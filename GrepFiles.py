@@ -58,6 +58,12 @@ try:
                 utils.print_result(f_list, search_txt, file_path)
                 continue
 
+            # pptx ファイルの場合の処理
+            if ext == '.pptx':
+                f_list = utils.read_pptx_text(file_path)
+                utils.print_result(f_list, search_txt, file_path)
+                continue
+
             # ファイルを開いて行ごとに検索
             with open(file_path, encoding='utf-8') as f:
                 f_list = f.readlines()

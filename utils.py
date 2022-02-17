@@ -13,7 +13,7 @@ from zipfile import ZipFile
 def read_xlsx_text(src_file_path):
 
     # xlsx ファイルの中に存在する xml ファイルの読み込み
-    zip = ZipFile(src_file_path)                     # xlsx ファイルを zip ファイルとして読み込む
+    zip = ZipFile(src_file_path)                     # ファイルを zip ファイルとして読み込む
     xml_path = zip.open('xl/sharedStrings.xml', 'r') # zip ファイルの中に存在する xml ファイルを読み込む
     tree = ET.parse(xml_path)                        # xml ファイルをパースされたオブジェクトとして読み込む
     root = tree.getroot()                            # 親階層の要素を取り出す
@@ -24,8 +24,25 @@ def read_xlsx_text(src_file_path):
         for child_2 in child:
             if child_2.text:
                 text_list.append(child_2.text)
-
     return text_list
+
+
+# pptx ファイルに書き込まれているテキストをリストにして返す関数
+# TODO: つくりかけ。
+def read_pptx_text(src_file_path):
+
+    # pptx ファイルの中に存在する xml ファイルの読み込み
+    zip = ZipFile(src_file_path)                       # ファイルを zip ファイルとして読み込む
+    xml_path = zip.open('ppt/slides/slide2.xml', 'r') # zip ファイルの中に存在する xml ファイルを読み込む
+    body = xml_path.read()
+    body = body.decode('utf-8')
+    print(body)
+
+    # パターンマッチでテキストが格納されている箇所を検知してリスト化する
+    text_list = re.findall(r'\<a\:t\>.+?\<\/a\:t\>', body)
+    print(text_list)
+    return text_list
+
 
 
 # 検索して結果をプリントする関数
