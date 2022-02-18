@@ -13,8 +13,8 @@ DETECT_PATH = r'\.pptx$'
 例3) 拡張子が「.xlsx」もしくは「.txt」のファイルのみを検索したい場合
 DETECT_PATH = r'\.xlsx$|\.txt$'
 '''
-# DETECT_PATH = r''
-DETECT_PATH = r'\.pptx$'
+DETECT_PATH = r''
+# DETECT_PATH = r'\.pptx$'
 # DETECT_PATH = r'\.xlsx$'
 
 

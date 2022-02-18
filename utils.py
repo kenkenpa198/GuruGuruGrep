@@ -23,7 +23,7 @@ https://qiita.com/sino20023/items/0314438d397240e56576
 https://qiita.com/mriho/items/f82c66e7a232b6b37206
 https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
 '''
-def read_xlsx_text(src_file_path):
+def make_xlsx_text_list(src_file_path):
 
     # zip アーカイブのオブジェクトを生成
     zip = ZipFile(src_file_path)
@@ -40,8 +40,6 @@ def read_xlsx_text(src_file_path):
             if child_2.text:
                 text_list.append(child_2.text)
     text_list_fmt = ['(改行)'.join(s.splitlines()) for s in text_list] # 改行が入っていると見づらいので改行を適当な文字列へ置換する
-    print(text_list)
-    print(text_list_fmt)
     return text_list_fmt
 
 
@@ -56,7 +54,7 @@ def read_xlsx_text(src_file_path):
 たぶんエクセル版と同じように子階層を掘っていくやり方でもできると思いますが、
 階層がエクセルよりも深いようで記述が冗長になりそうだったのでこちらを採用しました。
 '''
-def read_pptx_text(src_file_path):
+def make_pptx_text_list(src_file_path):
 
     # zip アーカイブのオブジェクトを生成
     zip = ZipFile(src_file_path)
@@ -91,10 +89,10 @@ def read_pptx_text(src_file_path):
 '''
 ■ 与えられた文字列をリスト上から検索して結果をプリントする関数
 '''
-def print_result(src_list, search_txt, file_path, hit_num):
+def search_text(src_list, search_text, file_path, hit_num):
     line_num = 1
     for line in src_list:
-        m = re.search(search_txt, line)
+        m = re.search(search_text, line)
         if m:
             # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
             out = '%s (%d, %d) : %s' % (file_path, line_num, m.start() + 1, line.rstrip())
@@ -102,3 +100,9 @@ def print_result(src_list, search_txt, file_path, hit_num):
             hit_num = hit_num + 1
         line_num = line_num + 1
     return hit_num
+
+'''
+■ 渡された内容をプリントする関数（例外用）
+'''
+def print_result_error(file_path, txt, error):
+    return '%s : %s <%s>' % (file_path, txt, error)

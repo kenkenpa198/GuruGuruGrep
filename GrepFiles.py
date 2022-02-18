@@ -75,20 +75,20 @@ try:
         try:
             # xlsx ファイルの場合の処理
             if ext == '.xlsx':
-                f_list = utils.read_xlsx_text(file_path)
-                hit_num = utils.print_result(f_list, search_txt, file_path, hit_num)
+                f_list = utils.make_xlsx_text_list(file_path)
+                hit_num = utils.search_text(f_list, search_txt, file_path, hit_num)
                 continue
 
             # pptx ファイルの場合の処理
             if ext == '.pptx':
-                f_list = utils.read_pptx_text(file_path)
-                hit_num = utils.print_result(f_list, search_txt, file_path, hit_num)
+                f_list = utils.make_pptx_text_list(file_path)
+                hit_num = utils.search_text(f_list, search_txt, file_path, hit_num)
                 continue
 
             # Office 系でなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
                 f_list = f.readlines()
-                hit_num = utils.print_result(f_list, search_txt, file_path, hit_num)
+                hit_num = utils.search_text(f_list, search_txt, file_path, hit_num)
                 continue
 
         # ファイルが文字コードエラーで開けなかった場合はスキップする
