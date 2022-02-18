@@ -14,9 +14,9 @@ import sys
 import setup
 import utils
 
-print('\n========================')
-print('       Grep Files       ')
-print('========================')
+print('\n=========================')
+print('       Grep Office       ')
+print('=========================')
 
 try:
     # 検索対象のディレクトリと検索するテキストを指定
@@ -25,7 +25,7 @@ try:
 
     if not os.path.exists(search_dir_input):
         print('\n入力されたディレクトリが見つかりませんでした。パスが正しいか確認してください。')
-        print('\nGrep Files を終了します。\n')
+        print('\nGrep Office を終了します。\n')
         sys.exit()
 
     search_txt = input('検索条件の文字列を入力してください: ')
@@ -81,11 +81,8 @@ try:
 
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
-                slide_text_list = utils.make_pptx_text_list(file_path)
-
-                # 多次元リストの中に格納されたテキストリストで検索
-                for text_list in slide_text_list:
-                    hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
+                text_list = utils.make_pptx_text_list(file_path)
+                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
                 continue
 
             # Office 系でなかった場合はファイルを開いて検索する
@@ -106,4 +103,4 @@ try:
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
 
-print('\nGrep Files を終了します。\n')
+print('\nGrep Office を終了します。\n')

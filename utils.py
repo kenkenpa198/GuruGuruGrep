@@ -21,7 +21,7 @@ pptx 用の関数も同じような感じです。
 https://yuukou-exp.plus/handle-xlsx-with-python-intro/
 https://qiita.com/sino20023/items/0314438d397240e56576
 https://qiita.com/mriho/items/f82c66e7a232b6b37206
-https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
+
 '''
 def make_xlsx_text_list(src_file_path):
 
@@ -39,7 +39,7 @@ def make_xlsx_text_list(src_file_path):
         for child_2 in child:
             if child_2.text:
                 text_list.append(child_2.text)
-    text_list_fmt = ['(改行)'.join(s.splitlines()) for s in text_list] # 改行が入っていると見づらいので改行を適当な文字列へ置換する
+    text_list_fmt = [''.join(s.splitlines()) for s in text_list] # 改行が入っていると見づらいので改行を削除する
 
     return text_list_fmt
 
@@ -53,7 +53,10 @@ def make_xlsx_text_list(src_file_path):
 
 パワーポイント版関数のテキストの検知はエクセル版と違い正規表現のパターンマッチを利用しています。
 たぶんエクセル版と同じように子階層を掘っていくやり方でもできると思いますが、
-階層がエクセルよりも深いようで記述が冗長になりそうだったのでこちらを採用しました。
+階層がエクセルよりも深いようで記述が冗長になりそうだったのでこちらを採用しています。
+
+参考:
+https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
 '''
 def make_pptx_text_list(src_file_path):
 
@@ -66,10 +69,8 @@ def make_pptx_text_list(src_file_path):
         if zfp.filename.startswith('ppt/slides/slide')
     ]
 
-    print(slide_path_list)
-
-    # slideXX.xml ごとにリスト化を繰り返して多次元リストを作成
-    slide_text_list = []
+    # slideXX.xml ごとにテキスト情報のリスト化⇒結合を繰り返してテキストリストを作成
+    text_list_fmt = []
     for slide_path in slide_path_list:
 
         # xml ファイルをデコードして読み込む
@@ -77,12 +78,14 @@ def make_pptx_text_list(src_file_path):
             body = f.read().decode('utf-8')
 
         # パターンマッチでテキストが格納されている箇所を検知してリスト化する
-        text_list = re.findall(r'\<a\:t\>.+?\<\/a\:t\>', body)
-        text_list_fmt = [s.lstrip('<a:t>').rstrip('</a:t>') for s in text_list] # 左右のタグを削除する
+        sub_text_list = re.findall(r'\<a\:t\>.+?\<\/a\:t\>', body)
+        sub_text_list_fmt = [s.lstrip('<a:t>').rstrip('</a:t>') for s in sub_text_list] # 左右のタグを削除する
 
-        slide_text_list.append(text_list_fmt)
+        # テキストを結合してリストへ再格納する
+        # NOTE: 空白や文字の種類ごとにテキストが分けられてしまっているため、ページごとに文字を結合している
+        text_list_fmt.append(''.join(sub_text_list_fmt))
 
-    return slide_text_list
+    return text_list_fmt
 
 
 '''

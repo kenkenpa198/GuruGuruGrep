@@ -7,9 +7,9 @@ setlocal
 :: 文字コードを設定
 chcp 65001
 
-echo GrepFiles.py を実行します。
+echo GrepOffice.py を実行します。
 
-python GrepFiles.py
+python GrepOffice.py
 
 echo 終了するには何らかのキーを押してください。
 pause
