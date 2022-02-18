@@ -40,6 +40,7 @@ def make_xlsx_text_list(src_file_path):
             if child_2.text:
                 text_list.append(child_2.text)
     text_list_fmt = ['(改行)'.join(s.splitlines()) for s in text_list] # 改行が入っていると見づらいので改行を適当な文字列へ置換する
+
     return text_list_fmt
 
 
@@ -81,9 +82,7 @@ def make_pptx_text_list(src_file_path):
 
         slide_text_list.append(text_list_fmt)
 
-    print(slide_text_list)
-
-    return text_list_fmt
+    return slide_text_list
 
 
 '''
@@ -97,8 +96,8 @@ def search_text(src_list, search_text, file_path, hit_num):
             # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
             out = '%s (%d, %d) : %s' % (file_path, line_num, m.start() + 1, line.rstrip())
             print(out)
-            hit_num = hit_num + 1
-        line_num = line_num + 1
+            hit_num += 1
+        line_num += 1
     return hit_num
 
 '''

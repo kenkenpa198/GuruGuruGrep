@@ -73,22 +73,25 @@ try:
         root, ext = os.path.splitext(file_path)
 
         try:
-            # xlsx ファイルの場合の処理
+            # .xlsx ファイルの場合の処理
             if ext == '.xlsx':
-                f_list = utils.make_xlsx_text_list(file_path)
-                hit_num = utils.search_text(f_list, search_txt, file_path, hit_num)
+                text_list = utils.make_xlsx_text_list(file_path)
+                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
                 continue
 
-            # pptx ファイルの場合の処理
+            # .pptx ファイルの場合の処理
             if ext == '.pptx':
-                f_list = utils.make_pptx_text_list(file_path)
-                hit_num = utils.search_text(f_list, search_txt, file_path, hit_num)
+                slide_text_list = utils.make_pptx_text_list(file_path)
+
+                # 多次元リストの中に格納されたテキストリストで検索
+                for text_list in slide_text_list:
+                    hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
                 continue
 
             # Office 系でなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
-                f_list = f.readlines()
-                hit_num = utils.search_text(f_list, search_txt, file_path, hit_num)
+                text_list = f.readlines()
+                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
                 continue
 
         # ファイルが文字コードエラーで開けなかった場合はスキップする
