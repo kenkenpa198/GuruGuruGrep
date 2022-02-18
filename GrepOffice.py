@@ -1,11 +1,3 @@
-'''
-Python3.5 以降
-
-参考サイト
-https://note.nkmk.me/python-glob-usage/
-https://blog.honjala.net/entry/2016/06/24/005852
-'''
-
 import glob
 import os
 import re

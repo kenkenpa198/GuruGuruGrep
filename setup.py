@@ -1,4 +1,10 @@
 '''
+設定用ファイルです。
+コメントを参考に記述を行ってみてください。
+'''
+
+
+'''
 ■ 検索ファイル設定
 検知を限定したいファイルがある場合、 DETECT_PATH へ正規表現で指定してください。
 マッチしたファイルのみを検索対象とします。
@@ -14,8 +20,6 @@ DETECT_PATH = r'\.pptx$'
 DETECT_PATH = r'\.xlsx$|\.txt$'
 '''
 DETECT_PATH = r''
-# DETECT_PATH = r'\.pptx$'
-# DETECT_PATH = r'\.xlsx$'
 
 
 '''

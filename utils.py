@@ -4,7 +4,6 @@ import re
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
-
 '''
 ■ .xlsx ファイルに書き込まれているテキストをリストにして返す関数
 
@@ -104,7 +103,7 @@ def search_text(src_list, search_text, file_path, hit_num):
     return hit_num
 
 '''
-■ 渡された内容をプリントする関数（例外用）
+■ 渡された情報をそのままプリントする関数（例外用）
 '''
 def print_result_error(file_path, txt, error):
     return '%s : %s <%s>' % (file_path, txt, error)
