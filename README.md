@@ -3,8 +3,8 @@
 
 ![イメージ図](images/kv.png)
 
-指定ディレクトリの配下に存在するファイルをもとに、指定された文字列で Grep 検索するツールです。  
-Word 、 Excel 、 PowerPoint のファイル（拡張子が `.docx` , `.xlsx` , `.pptx` のもののみ）の検索にも対応しているのが特徴です。
+指定ディレクトリより下層に存在するファイルに対して、指定された文字列で Grep 検索を行うツールです。  
+プレーンテキストファイルに加えて、Word 、 Excel 、 PowerPoint のファイルの検索にも対応しているのが特徴です。
 
 試作段階のため、対応済みの環境やファイルであっても実行に不備がある可能性があります。ご容赦ください。  
 不具合などあった場合はご連絡いただけると大変ありがたいです。
@@ -13,16 +13,16 @@ Word 、 Excel 、 PowerPoint のファイル（拡張子が `.docx` , `.xlsx` ,
 
 ### 1.1. 対応済みのファイル
 
-- プレーンテキストファイル（UTF-8 のみ）
-- Word ファイル（`.docx` のみ）
-- Excel ファイル（`.xlsx` のみ）
-- Power Point ファイル（`.pptx` のみ）
+- プレーンテキストファイル（文字コードが UTF-8 のみ）
+- Word ファイル（拡張子が `.docx` のみ）
+- Excel ファイル（拡張子が `.xlsx` のみ）
+- Power Point ファイル（拡張子が `.pptx` のみ）
 
 ※ Excel ファイルの場合、セルに直接記述されたテキストのみが取得できます。関数の出力結果やシェイプ中の文字は取得できません。
 
 ### 1.2. 未対応のファイル
 
-- UTF-8 以外のプレーンテキストファイル（今後対応予定）
+- 文字コードが UTF-8 以外のプレーンテキストファイル（今後対応予定）
 - PDF ファイル（今後対応予定）
 - 拡張子に `x` が付かない古い Office 系ファイル（`.xls` , `.ppt` , `.doc`）
   - 検索の際に利用している xml ファイルの仕様が違うらしいため。
@@ -160,10 +160,12 @@ bat ファイルでツールを起動中に `Ctrl + C` を送信して終了す�
 
 ## 8. 参考サイト様
 
-以下のサイト様の情報を主に参考にさせていただきました🙇‍♂️
+主に以下のサイト様の情報を参考にさせていただきました🙇‍♂️
+一部はコメント内で引用させていただいております。
 
 - [Windows10 - ExcelやWord内の写真を画像として取り出し保存する方法 - Win10ラボ](https://win10labo.info/win10-excel-photo/)
 - [PythonでExcelファイルを操作する!(1) /実はzip圧縮ファイルだって知ってました？│YUUKOU's 経験値](https://yuukou-exp.plus/handle-xlsx-with-python-intro/)
 - [Pythonを使ってzipファイルからファイルを取り出す - Qiita](https://qiita.com/mriho/items/f82c66e7a232b6b37206)
 - [パワーポイント内のテキストをgrepする - Qiita](https://qiita.com/kaityo256/items/2977d53e70bbffd4d601)
 - [PythonでのXMLファイル操作例 - Qiita](https://qiita.com/sino20023/items/0314438d397240e56576)
+- [基本的な正規表現一覧 | murashun.jp](https://murashun.jp/article/programming/regular-expression.html)
