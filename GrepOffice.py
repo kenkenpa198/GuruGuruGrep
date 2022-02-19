@@ -28,6 +28,11 @@ try:
     print('検索ディレクトリ : ' + search_dir)
     print('検索条件         : ' + search_txt)
 
+    if setup.USE_REGEXP:
+        print('正規表現で検索   : 使用する')
+    else:
+        print('正規表現で検索   : 使用しない')
+
     if setup.DETECT_PATH:
         print('検索ファイル     : ' + setup.DETECT_PATH)
     else:
