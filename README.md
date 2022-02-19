@@ -161,7 +161,7 @@ bat ファイルでツールを起動中に `Ctrl + C` を送信して終了す�
 ## 8. 参考サイト様
 
 主に以下のサイト様の情報を参考にさせていただきました🙇‍♂️
-コメント内でも引用させていただいております。
+ソースコードのコメント内でも引用させていただいております。
 
 - [Windows10 - ExcelやWord内の写真を画像として取り出し保存する方法 - Win10ラボ](https://win10labo.info/win10-excel-photo/)
 - [PythonでExcelファイルを操作する!(1) /実はzip圧縮ファイルだって知ってました？│YUUKOU's 経験値](https://yuukou-exp.plus/handle-xlsx-with-python-intro/)
