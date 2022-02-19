@@ -13,6 +13,7 @@ https://murashun.jp/article/programming/regular-expression.html
 '''
 ■ 正規表現の検索設定
 検索をする際に正規表現を使用するかどうかを設定します。
+USE_REGEXP へ下記のいずれかの値を指定してください。
 
 True : 正規表現を使用して検索する。
 False: 正規表現を使用せずに検索する。
