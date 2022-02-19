@@ -2,11 +2,7 @@
 ■■■ setup.py ■■■
 
 検索の設定を行うファイルです。
-コメントを参考に記述を変更して保存後、ツールを実行してください。
-
-参考:
-基本的な正規表現一覧 | murashun.jp
-https://murashun.jp/article/programming/regular-expression.html
+各設定のコメントを参考に記述を変更して保存した後、ツールを実行してください。
 '''
 
 
@@ -15,8 +11,8 @@ https://murashun.jp/article/programming/regular-expression.html
 検索をする際に正規表現を使用するかどうかを設定します。
 USE_REGEXP へ下記のいずれかの値を指定してください。
 
-True : 正規表現を使用して検索する。
-False: 正規表現を使用せずに検索する。
+    True : 正規表現を使用して検索する。
+    False: 正規表現を使用せずに検索する。
 
 デフォルトは False 設定です。
 '''
@@ -31,14 +27,21 @@ USE_REGEXP = False
 デフォルトは設定なしです。
 除外パス設定に記述されたファイル以外を検索対象とします。
 
-例1) 検索ファイルの設定をしない場合
-DETECT_PATH = r''
+拡張子を設定する場合、「.」を「\」でエスケープさせる指定と「$」での行末指定が必要です。
+下記の例を参考に設定してみてください。
 
-例2) 拡張子が「.pptx」のファイルのみを検索したい場合
-DETECT_PATH = r'\.pptx$'
+    例1) 検索ファイルの設定をしない場合
+    DETECT_PATH = r''
 
-例3) 拡張子が「.xlsx」もしくは「.txt」のファイルのみを検索したい場合
-DETECT_PATH = r'\.xlsx$|\.txt$'
+    例2) 拡張子が「.pptx」のファイルのみを検索したい場合
+    DETECT_PATH = r'\.pptx$'
+
+    例3) 拡張子が「.xlsx」または「.txt」のファイルのみを検索したい場合（「|」で OR 指定を行う）
+    DETECT_PATH = r'\.xlsx$|\.txt$'
+
+参考:
+基本的な正規表現一覧 | murashun.jp
+https://murashun.jp/article/programming/regular-expression.html
 '''
 DETECT_PATH = r''
 
