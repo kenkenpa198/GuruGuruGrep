@@ -4,6 +4,34 @@ import zipfile
 
 import setup
 
+
+'''
+■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数
+
+.xlsx .pptx .docx が空のファイルの場合、zip アーカイブ化できなかったり
+テキスト情報が詰まった xml ファイルが存在しなかったりしてエラーを吐いていたので
+テキスト情報を取り出せるか否かの事前チェックを行う関数です。
+
+ファイルによって以下のように違いがあるようなので、どの場合でも検出できるようにしています。
+    - 空の .xlsx の場合: zip ファイルとして扱えるけど、xml ファイルがない
+    - 空の .pptx の場合: zip ファイルとしてそもそも扱えない
+    - 空の .docx の場合: zip ファイルとしてそもそも扱えない
+'''
+def is_gettable_text(check_file_path, xml_file_path):
+
+    # 指定したファイルが zip アーカイブファイルとして扱えない場合は False を返す
+    if not zipfile.is_zipfile(check_file_path):
+        return False
+
+    # zip ファイルとして扱えてもテキスト情報が保管された xml ファイルが存在しない場合は False を返す
+    zip = zipfile.ZipFile(check_file_path)
+    if not xml_file_path in zip.namelist():
+        return False
+
+    # チェックを通ったもののみ True を返す
+    return True
+
+
 '''
 ■ .xlsx ファイルに書き込まれているテキストをリストにして返す関数
 
@@ -24,19 +52,18 @@ https://qiita.com/mriho/items/f82c66e7a232b6b37206
 '''
 def make_xlsx_text_list(src_file_path):
 
-    # zip アーカイブ化できなかった場合（空のファイルの場合）は空文字を返す
-    try:
-        # zip アーカイブのオブジェクトを生成
-        zip = zipfile.ZipFile(src_file_path)
-    except zipfile.BadZipFile:
+    # テキスト情報が詰まった xml ファイルの指定
+    xml_file_path = 'xl/sharedStrings.xml'
+
+    # テキスト情報を取り出せない場合は空文字を返す
+    if not is_gettable_text(src_file_path, xml_file_path):
         return ''
 
-    # テキスト情報が保管された xml ファイルが存在しない場合（空のファイルの場合）は空文字を返す
-    if not 'xl/sharedStrings.xml' in zip.namelist():
-        return ''
+    # zip アーカイブ化
+    zip = zipfile.ZipFile(src_file_path)
 
     # xlsx ファイルの中に存在する xml ファイルの読み込み
-    with zip.open('xl/sharedStrings.xml', 'r') as f:
+    with zip.open(xml_file_path, 'r') as f:
         tree = ET.parse(f)                           # zip ファイルの中に存在する xml ファイルをパースされたオブジェクトとして読み込む
     root = tree.getroot()                            # 親階層の要素を取り出す
 
@@ -70,21 +97,21 @@ https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
 '''
 def make_pptx_text_list(src_file_path):
 
-    # zip アーカイブ化できなかった場合（空のファイルの場合）は空文字を返す
-    try:
-        # zip アーカイブのオブジェクトを生成
-        zip = zipfile.ZipFile(src_file_path)
-    except zipfile.BadZipFile:
+    # テキスト情報が詰まった xml ファイルの指定
+    xml_file_path_left = 'ppt/slides/slide'
+    xml_file_path = 'ppt/slides/slide1.xml'
+
+    # テキスト情報を取り出せない場合は空文字を返す
+    if not is_gettable_text(src_file_path, xml_file_path):
         return ''
 
-    # テキスト情報が保管された xml ファイルが存在しない場合（空のファイルの場合）は空文字を返す
-    if not 'ppt/slides/slide1.xml' in zip.namelist():
-        return ''
+    # zip アーカイブ化
+    zip = zipfile.ZipFile(src_file_path)
 
     # ppt/slides/slideXX.xml をリストへ格納する
     slide_path_list = [
         zfp.filename for zfp in zip.filelist
-        if zfp.filename.startswith('ppt/slides/slide')
+        if zfp.filename.startswith(xml_file_path_left)
     ]
 
     # slideXX.xml ごとにテキスト情報のリスト化⇒結合を繰り返してテキストリストを作成
@@ -118,19 +145,18 @@ def make_pptx_text_list(src_file_path):
 '''
 def make_docx_text_list(src_file_path):
 
-    # zip アーカイブ化できなかった場合（空のファイルの場合）は空文字を返す
-    try:
-        # zip アーカイブのオブジェクトを生成
-        zip = zipfile.ZipFile(src_file_path)
-    except zipfile.BadZipFile:
+    # テキスト情報が詰まった xml ファイルの指定
+    xml_file_path = 'word/document.xml'
+
+    # テキスト情報を取り出せない場合は空文字を返す
+    if not is_gettable_text(src_file_path, xml_file_path):
         return ''
 
-    # テキスト情報が保管された xml ファイルが存在しない場合（空のファイルの場合）は空文字を返す
-    if not 'word/document.xml' in zip.namelist():
-        return ''
+    # zip アーカイブ化
+    zip = zipfile.ZipFile(src_file_path)
 
     # xml ファイルをデコードして読み込む
-    with zip.open('word/document.xml', 'r') as f:
+    with zip.open(xml_file_path, 'r') as f:
         body = f.read().decode('utf-8')
 
     # パターンマッチでテキストが格納されている箇所を検知してリスト化する
@@ -145,36 +171,55 @@ def make_docx_text_list(src_file_path):
 
 
 '''
-■ 与えられた文字列をリスト上から検索して結果をプリントする関数
+■ 結果を出力する関数
 
-TODO: 結果出力部分の処理を切り分ける
+与えられた引数を基に結果テキストを整形しプリントする関数です。
+以下の形で整形して出力します。
+
+「ファイルパス (X行目, Y文字目) : テキスト」
 '''
-def search_text(src_list, search_text, file_path, hit_num):
+def print_result(file_path, line_num, char_num, text):
+    print('%s (%d, %d) : %s' % (file_path, line_num, char_num, text))
+
+
+'''
+■ 渡された情報をそのままプリントする関数（例外用）
+'''
+def print_result_error(file_path, txt, output_text):
+    print('%s : %s <%s>' % (file_path, txt, output_text))
+
+
+'''
+■ 与えられた文字列をリストから検索して結果を繰り返し出力する関数
+'''
+def search_to_print_result(text_line_list, search_text, file_path, hit_num):
+
     line_num = 1
-    for line in src_list:
+    for line in text_line_list:
 
         # 正規表現検索が True の場合は正規表現マッチを使用する
         if setup.USE_REGEXP:
             m = re.search(search_text, line)
             if m:
-                # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
-                out = '%s (%d, %d) : %s' % (file_path, line_num, m.start() + 1, line.rstrip())
-                print(out)
+                print_result(file_path, line_num, m.start() + 1, line.rstrip()) # 結果を出力する
                 hit_num += 1
 
         # 正規表現検索が True でない場合は find() を使用する
         else:
             s = line.find(search_text)
             if not s == -1:
-                # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
-                out = '%s (%d, %d) : %s' % (file_path, line_num, s + 1, line.rstrip())
-                print(out)
+                print_result(file_path, line_num, s + 1, line.rstrip()) # 結果を出力する
                 hit_num += 1
 
+        line_num += 1
     return hit_num
 
+
 '''
-■ 渡された情報をそのままプリントする関数（例外用）
+■ 与えられたファイルパスリストと検索条件テキストに対して検索を実行する関数
+
+前述の検索 & 出力用関数をファイルパスリストに対して繰り返し実行します。
+拡張子によって展開用関数を変更します。
+
+TODO: メイン py ファイルから切り出して作成する
 '''
-def print_result_error(file_path, txt, error):
-    return '%s : %s <%s>' % (file_path, txt, error)
