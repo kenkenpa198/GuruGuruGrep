@@ -1,6 +1,6 @@
 import re
 import xml.etree.ElementTree as ET
-from zipfile import ZipFile
+import zipfile
 
 import setup
 
@@ -24,8 +24,16 @@ https://qiita.com/mriho/items/f82c66e7a232b6b37206
 '''
 def make_xlsx_text_list(src_file_path):
 
-    # zip アーカイブのオブジェクトを生成
-    zip = ZipFile(src_file_path)
+    # zip アーカイブ化できなかった場合（空のファイルの場合）は空文字を返す
+    try:
+        # zip アーカイブのオブジェクトを生成
+        zip = zipfile.ZipFile(src_file_path)
+    except zipfile.BadZipFile:
+        return ''
+
+    # テキスト情報が保管された xml ファイルが存在しない場合（空のファイルの場合）は空文字を返す
+    if not 'xl/sharedStrings.xml' in zip.namelist():
+        return ''
 
     # xlsx ファイルの中に存在する xml ファイルの読み込み
     with zip.open('xl/sharedStrings.xml', 'r') as f:
@@ -62,8 +70,16 @@ https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
 '''
 def make_pptx_text_list(src_file_path):
 
-    # zip アーカイブのオブジェクトを生成
-    zip = ZipFile(src_file_path)
+    # zip アーカイブ化できなかった場合（空のファイルの場合）は空文字を返す
+    try:
+        # zip アーカイブのオブジェクトを生成
+        zip = zipfile.ZipFile(src_file_path)
+    except zipfile.BadZipFile:
+        return ''
+
+    # テキスト情報が保管された xml ファイルが存在しない場合（空のファイルの場合）は空文字を返す
+    if not 'ppt/slides/slide1.xml' in zip.namelist():
+        return ''
 
     # ppt/slides/slideXX.xml をリストへ格納する
     slide_path_list = [
@@ -102,8 +118,16 @@ def make_pptx_text_list(src_file_path):
 '''
 def make_docx_text_list(src_file_path):
 
-    # zip アーカイブのオブジェクトを生成
-    zip = ZipFile(src_file_path)
+    # zip アーカイブ化できなかった場合（空のファイルの場合）は空文字を返す
+    try:
+        # zip アーカイブのオブジェクトを生成
+        zip = zipfile.ZipFile(src_file_path)
+    except zipfile.BadZipFile:
+        return ''
+
+    # テキスト情報が保管された xml ファイルが存在しない場合（空のファイルの場合）は空文字を返す
+    if not 'word/document.xml' in zip.namelist():
+        return ''
 
     # xml ファイルをデコードして読み込む
     with zip.open('word/document.xml', 'r') as f:
