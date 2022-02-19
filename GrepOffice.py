@@ -66,6 +66,7 @@ try:
     # 検索処理
     hit_num = 0
     for file_path in file_path_list:
+
         # 拡張子によって条件分岐するための前処理
         root, ext = os.path.splitext(file_path)
 
@@ -73,31 +74,31 @@ try:
             # .xlsx ファイルの場合の処理
             if ext == '.xlsx':
                 text_list = utils.make_xlsx_text_list(file_path)
-                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
+                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                 continue
 
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
                 text_list = utils.make_pptx_text_list(file_path)
-                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
+                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                 continue
 
             # .docx ファイルの場合の処理
             if ext == '.docx':
                 text_list = utils.make_docx_text_list(file_path)
-                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
+                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                 continue
 
             # Office 系でなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
                 text_list = f.readlines()
-                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
+                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                 continue
 
         # ファイルが文字コードエラーで開けなかった場合はスキップする
         except UnicodeDecodeError as e:
+            # utils.print_result_error(file_path, 'ファイルを読み込めませんでした。', e)
             continue
-            # print(utils.print_result_error(file_path, 'ファイルを読み込めませんでした。', e))
 
     print('\n----------------------------------------------------------')
 
