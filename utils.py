@@ -1,8 +1,8 @@
-import glob
-import os
 import re
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
+
+import setup
 
 '''
 ■ .xlsx ファイルに書き込まれているテキストをリストにして返す関数
@@ -122,17 +122,31 @@ def make_docx_text_list(src_file_path):
 
 '''
 ■ 与えられた文字列をリスト上から検索して結果をプリントする関数
+
+TODO: 結果出力部分の処理を切り分ける
 '''
 def search_text(src_list, search_text, file_path, hit_num):
     line_num = 1
     for line in src_list:
-        m = re.search(search_text, line)
-        if m:
-            # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
-            out = '%s (%d, %d) : %s' % (file_path, line_num, m.start() + 1, line.rstrip())
-            print(out)
-            hit_num += 1
-        line_num += 1
+
+        # 正規表現検索が True の場合は正規表現マッチを使用する
+        if setup.USE_REGEXP:
+            m = re.search(search_text, line)
+            if m:
+                # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
+                out = '%s (%d, %d) : %s' % (file_path, line_num, m.start() + 1, line.rstrip())
+                print(out)
+                hit_num += 1
+
+        # 正規表現検索が True でない場合は find() を使用する
+        else:
+            s = line.find(search_text)
+            if not s == -1:
+                # ファイルパス.txt (X行目, Y文字目) : 行のテキスト
+                out = '%s (%d, %d) : %s' % (file_path, line_num, s + 1, line.rstrip())
+                print(out)
+                hit_num += 1
+
     return hit_num
 
 '''
