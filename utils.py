@@ -214,11 +214,12 @@ def search_to_print_result(text_line_list, search_text, file_path, hit_num):
         line_num += 1
     return hit_num
 
+
 '''
 ■ 与えられたファイルパスリストと検索条件テキストに対して検索を実行する関数
 
 前述の検索 & 出力用関数をファイルパスリストに対して繰り返し実行します。
-拡張子によって展開用関数を変えます。
+拡張子によって展開用関数を変更します。
 
-TODO: 作成する
+TODO: メイン py ファイルから切り出して作成する
 '''
