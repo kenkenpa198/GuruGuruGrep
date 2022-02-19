@@ -12,15 +12,15 @@ from zipfile import ZipFile
 
 この特性を利用して、xlsx ファイルを zip アーカイブファイルとして読み込み、
 テキスト情報が詰まった xml ファイルからテキスト情報を抜き出してリスト形式で返すのがこの関数の役目です。
-pptx 用の関数も同じような感じです。
+パワーポイント用、ワード用の関数も同じような感じです。
 
-テキスト情報が詰まった xml ファイルはツリー状のファイル形式なので、組み込みのモジュールを使って要素を抜き出しています。
+テキスト情報が詰まった xml ファイルはツリー状のファイル形式でそのままだと扱いにくいので、
+組み込みの xml モジュールを使って要素を抜き出しています。
 
 参考:
 https://yuukou-exp.plus/handle-xlsx-with-python-intro/
 https://qiita.com/sino20023/items/0314438d397240e56576
 https://qiita.com/mriho/items/f82c66e7a232b6b37206
-
 '''
 def make_xlsx_text_list(src_file_path):
 
@@ -44,7 +44,7 @@ def make_xlsx_text_list(src_file_path):
 
 
 '''
-■ .pptx ファイルに書き込まれているテキストを多次元リストにして返す関数（作成中）
+■ .pptx ファイルに書き込まれているテキストをリストにして返す関数
 
 前述の関数のパワーポイント版。
 展開まではエクセル用と同じですが、パワーポイントの場合はスライドごとに xml ファイルが分かれているので
@@ -53,6 +53,9 @@ def make_xlsx_text_list(src_file_path):
 パワーポイント版関数のテキストの検知はエクセル版と違い正規表現のパターンマッチを利用しています。
 たぶんエクセル版と同じように子階層を掘っていくやり方でもできると思いますが、
 階層がエクセルよりも深いようで記述が冗長になりそうだったのでこちらを採用しています。
+
+パワーポイントの xml に記述されたテキストは空白や文字の種類を境に
+テキストが細切れになっているため、ページごとに文字を結合しています。
 
 参考:
 https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
@@ -77,12 +80,42 @@ def make_pptx_text_list(src_file_path):
             body = f.read().decode('utf-8')
 
         # パターンマッチでテキストが格納されている箇所を検知してリスト化する
-        sub_text_list = re.findall(r'\<a\:t\>.+?\<\/a\:t\>', body)
-        sub_text_list_fmt = [s.lstrip('<a:t>').rstrip('</a:t>') for s in sub_text_list] # 左右のタグを削除する
+        find_text_list = re.findall(r'\<a\:t\>.+?\<\/a\:t\>', body)
+        find_text_list_fmt = [s.lstrip('<a:t>').rstrip('</a:t>') for s in find_text_list] # 左右のタグを削除する
 
         # テキストを結合してリストへ再格納する
-        # NOTE: 空白や文字の種類を境にテキストが細切れになっているため、ページごとに文字を結合する
-        text_list_fmt.append(''.join(sub_text_list_fmt))
+        text_list_fmt.append(''.join(find_text_list_fmt))
+
+    return text_list_fmt
+
+
+'''
+■ .docx ファイルに書き込まれているテキストをリストにして返す関数
+
+前述の関数のワード版。処理の流れは前述の関数と同様です。
+
+ワードの xml ファイルの場合は、ひとつの xml ファイルの中に細切れになったテキストが格納されているようなイメージ。
+なのでパワーポイントと同様に正規表現のパターンマッチ + 文字の結合を行っています。
+
+パワーポイント版のようにページごとにファイルが分けられているのではないため、ページごとの行番号の出力は不可能そう。
+そういう情報が保存されていればできそうなので調べてみてもいいかも？
+'''
+def make_docx_text_list(src_file_path):
+
+    # zip アーカイブのオブジェクトを生成
+    zip = ZipFile(src_file_path)
+
+    # xml ファイルをデコードして読み込む
+    with zip.open('word/document.xml', 'r') as f:
+        body = f.read().decode('utf-8')
+
+    # パターンマッチでテキストが格納されている箇所を検知してリスト化する
+    find_text_list = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', body)
+    find_text_list_fmt = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_text_list] # 左右のタグを削除する
+
+    # テキストを結合してリストへ格納する
+    text_list_fmt = []
+    text_list_fmt.append(''.join(find_text_list_fmt))
 
     return text_list_fmt
 

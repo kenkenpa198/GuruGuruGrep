@@ -42,7 +42,7 @@ try:
     print('\n----------------------------------------------------------\n')
 
     print('問題なければ Enter キーを押してください。')
-    input('キャンセルする場合は Ctrl + C を押してください。')
+    input('中断する場合は Ctrl + C を押してください。')
 
     # 指定ディレクトリ以下に存在するファイルをリストへ格納する
     file_path_list = [
@@ -74,6 +74,12 @@ try:
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
                 text_list = utils.make_pptx_text_list(file_path)
+                hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
+                continue
+
+            # .docx ファイルの場合の処理
+            if ext == '.docx':
+                text_list = utils.make_docx_text_list(file_path)
                 hit_num = utils.search_text(text_list, search_txt, file_path, hit_num)
                 continue
 
