@@ -89,6 +89,12 @@ try:
                 hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                 continue
 
+            # .pdf ファイルの場合の処理
+            if ext == '.pdf':
+                text_list = utils.make_pdf_text_list(file_path)
+                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                continue
+
             # Office 系でなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
                 text_list = f.readlines()

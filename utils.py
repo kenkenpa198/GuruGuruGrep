@@ -1,10 +1,10 @@
-import enum
 import re
 import xml.etree.ElementTree as ET
 import zipfile
 
 import setup
 
+import pdfminer.high_level as pdfm_hl
 
 '''
 ■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数
@@ -177,6 +177,23 @@ def make_docx_text_list(src_file_path):
 
 
 '''
+■ PDF ファイルに書き込まれているテキストをリストにして返す関数
+
+PDF ファイルを扱える外部モジュール pdfminer.sys を利用してテキストを取り出します。
+ページごとにリストを生成したかったけど自分には難しかったので行ごとに取り出すことにしました。
+
+参考:
+https://self-development.info/%E3%80%90python%E3%80%91pdfminer%E3%81%A7pdf%E3%81%8B%E3%82%89%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%92%E6%8A%BD%E5%87%BA%E3%81%99%E3%82%8B/
+'''
+def make_pdf_text_list(src_file_path):
+
+    text = pdfm_hl.extract_text(src_file_path)
+    text_list = text.splitlines()
+
+    return text_list
+
+
+'''
 ■ 結果を出力する関数
 
 与えられた引数を基に結果テキストを整形しプリントする関数です。
@@ -186,13 +203,6 @@ def make_docx_text_list(src_file_path):
 '''
 def print_result(file_path, line_num, char_num, text):
     print('%s (%d, %d) : %s' % (file_path, line_num, char_num, text))
-
-
-'''
-■ 渡された情報をそのままプリントする関数（例外用）
-'''
-def print_result_error(file_path, txt, output_text):
-    print('%s : %s <%s>' % (file_path, txt, output_text))
 
 
 '''
