@@ -1,3 +1,4 @@
+import enum
 import re
 import xml.etree.ElementTree as ET
 import zipfile
@@ -159,15 +160,20 @@ def make_docx_text_list(src_file_path):
     with zip.open(xml_file_path, 'r') as f:
         body = f.read().decode('utf-8')
 
-    # パターンマッチでテキストが格納されている箇所を検知してリスト化する
-    find_text_list = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', body)
-    find_text_list_fmt = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_text_list] # 左右のタグを削除する
+    # テキスト要素を行ごとに一旦リスト化する
+    find_line_list = re.findall(r'\<w\:p.+?\<\/w\:p\>', body)
 
-    # テキストを結合してリストへ格納する
-    text_list_fmt = []
-    text_list_fmt.append(''.join(find_text_list_fmt))
+    # [[1行目 要素1, 1行目 要素2], [2行目 要素1, 2行目 要素2], ...] という形の多次元リストに変換する
+    for index, value in enumerate(find_line_list):
+        find_line_list[index] = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', value)
+        find_line_list[index] = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_line_list[index]] # 左右のタグを削除する
 
-    return text_list_fmt
+    # 多次元リスト中のテキストを結合して出力用のリストへ格納する
+    text_list = []
+    for i in find_line_list:
+        text_list.append(''.join(i))
+
+    return text_list
 
 
 '''

@@ -53,7 +53,7 @@ try:
     file_path_list = [
         p for p in glob.glob(search_dir, recursive=True) # 指定ディレクトリ以下に存在するファイルパスを再帰的に格納する
         if re.search(setup.DETECT_PATH, p)               # 検索対象のファイルのみを格納する
-        if not re.search(setup.EXCLUDE_PATH, p)        # 除外対象のファイルは格納しない
+        if not re.search(setup.EXCLUDE_PATH, p)          # 除外対象のファイルは格納しない
         if os.path.isfile(p)                             # 存在するファイルのみを格納する
     ]
 
