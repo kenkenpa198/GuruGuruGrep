@@ -4,7 +4,10 @@ import zipfile
 
 import setup
 
-import pdfminer.high_level as pdfm_hl
+# PDF の検索設定が True の場合、pdfminer.sys を import する
+if setup.DETECT_PDF_FILE:
+    import pdfminer.high_level as pdfm_hl
+
 
 '''
 ■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数

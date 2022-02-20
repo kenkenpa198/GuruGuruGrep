@@ -34,15 +34,19 @@ try:
         print('正規表現で検索   : 使用しない')
 
     if setup.DETECT_PATH:
-        print('検索ファイル     : ' + setup.DETECT_PATH)
+        print('検索ファイル指定 : ' + setup.DETECT_PATH)
     else:
-        print('検索ファイル     : 設定なし')
+        print('検索ファイル指定 : 設定なし')
 
     if setup.EXCLUDE_PATH:
-        print('除外ファイル     : ' + setup.EXCLUDE_PATH)
+        print('除外ファイル指定 : ' + setup.EXCLUDE_PATH)
     else:
-        print('除外ファイル     : 設定なし')
+        print('除外ファイル指定 : 設定なし')
 
+    if setup.DETECT_PDF_FILE:
+        print('PDF ファイル     : 検索する')
+    else:
+        print('PDF ファイル     : 検索しない')
 
     print('\n----------------------------------------------------------\n')
 
@@ -89,11 +93,12 @@ try:
                 hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                 continue
 
-            # .pdf ファイルの場合の処理
-            if ext == '.pdf':
-                text_list = utils.make_pdf_text_list(file_path)
-                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
-                continue
+            # .pdf ファイルの場合の処理（PDF の検索設定が True の場合のみ処理する）
+            if setup.DETECT_PDF_FILE:
+                if ext == '.pdf':
+                    text_list = utils.make_pdf_text_list(file_path)
+                    hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                    continue
 
             # Office 系でなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
