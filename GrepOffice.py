@@ -13,12 +13,13 @@ print('=========================')
 try:
     # 検索対象のディレクトリと検索するテキストを指定
     search_dir_input = input('\n検索対象のディレクトリパスを入力してください: ')
-    search_dir = os.path.join(search_dir_input, '**')
 
-    if not os.path.exists(search_dir_input):
+    while not os.path.exists(search_dir_input):
         print('\n入力されたディレクトリが見つかりませんでした。パスが正しいか確認してください。')
-        print('\nGrep Office を終了します。\n')
-        sys.exit()
+        print('中断する場合は Ctrl + C を押してください。')
+        search_dir_input = input('\n検索対象のディレクトリパスを入力してください: ')
+
+    search_dir = os.path.join(search_dir_input, '**')
 
     search_txt = input('検索条件とする文字列を入力してください: ')
 
