@@ -14,7 +14,7 @@ import setup
 テキスト情報を取り出せるか否かの事前チェックを行う関数です。
 
 ファイルによって以下のように違いがあるようなので、どの場合でも検出できるようにしています。
-    - 空の .xlsx の場合: zip ファイルとして扱えるけど、xml ファイルがない
+    - 空の .xlsx の場合: zip ファイルとして扱えるけど、xml ファイルが存在しない
     - 空の .pptx の場合: zip ファイルとしてそもそも扱えない
     - 空の .docx の場合: zip ファイルとしてそもそも扱えない
 '''
@@ -165,8 +165,8 @@ def make_docx_text_list(src_file_path):
 
     # [[1行目 要素1, 1行目 要素2], [2行目 要素1, 2行目 要素2], ...] という形の多次元リストに変換する
     for index, value in enumerate(find_line_list):
-        find_line_list[index] = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', value)
-        find_line_list[index] = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_line_list[index]] # 左右のタグを削除する
+        find_line_list[index] = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', value)                         # 細切れの要素ごとにリスト化して格納する
+        find_line_list[index] = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_line_list[index]] # 細切れの要素ごとに付いている左右のタグを削除する
 
     # 多次元リスト中のテキストを結合して出力用のリストへ格納する
     text_list = []
