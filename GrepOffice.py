@@ -20,7 +20,7 @@ try:
         print('\nGrep Office を終了します。\n')
         sys.exit()
 
-    search_txt = input('検索条件の文字列を入力してください: ')
+    search_txt = input('検索条件とする文字列を入力してください: ')
 
     print('\n下記の検索条件で検索を実行します。')
     print('----------------------------------------------------------\n')
@@ -38,8 +38,8 @@ try:
     else:
         print('検索ファイル     : 設定なし')
 
-    if setup.EXCLUSION_PATH:
-        print('除外ファイル     : ' + setup.EXCLUSION_PATH)
+    if setup.EXCLUDE_PATH:
+        print('除外ファイル     : ' + setup.EXCLUDE_PATH)
     else:
         print('除外ファイル     : 設定なし')
 
@@ -53,7 +53,7 @@ try:
     file_path_list = [
         p for p in glob.glob(search_dir, recursive=True) # 指定ディレクトリ以下に存在するファイルパスを再帰的に格納する
         if re.search(setup.DETECT_PATH, p)               # 検索対象のファイルのみを格納する
-        if not re.search(setup.EXCLUSION_PATH, p)        # 除外対象のファイルは格納しない
+        if not re.search(setup.EXCLUDE_PATH, p)        # 除外対象のファイルは格納しない
         if os.path.isfile(p)                             # 存在するファイルのみを格納する
     ]
 

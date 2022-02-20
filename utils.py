@@ -207,7 +207,7 @@ def search_to_print_result(text_line_list, search_text, file_path, hit_num):
         # 正規表現検索が True でない場合は find() を使用する
         else:
             s = line.find(search_text)
-            if not s == -1:
+            if s >= 0:
                 print_result(file_path, line_num, s + 1, line.rstrip()) # 結果を出力する
                 hit_num += 1
 
