@@ -6,8 +6,9 @@ import sys
 import setup
 import utils
 
-print('\n=========================')
-print('       Grep Office       ')
+print('\n')
+print('=========================')
+print('     🔍 Grep Office     ')
 print('=========================')
 
 try:
