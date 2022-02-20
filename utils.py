@@ -4,6 +4,10 @@ import zipfile
 
 import setup
 
+# PDF の検索設定が True の場合、pdfminer.sys を import する
+if setup.DETECT_PDF_FILE:
+    import pdfminer.high_level as pdfm_hl
+
 
 '''
 ■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数
@@ -13,7 +17,7 @@ import setup
 テキスト情報を取り出せるか否かの事前チェックを行う関数です。
 
 ファイルによって以下のように違いがあるようなので、どの場合でも検出できるようにしています。
-    - 空の .xlsx の場合: zip ファイルとして扱えるけど、xml ファイルがない
+    - 空の .xlsx の場合: zip ファイルとして扱えるけど、xml ファイルが存在しない
     - 空の .pptx の場合: zip ファイルとしてそもそも扱えない
     - 空の .docx の場合: zip ファイルとしてそもそも扱えない
 '''
@@ -159,15 +163,37 @@ def make_docx_text_list(src_file_path):
     with zip.open(xml_file_path, 'r') as f:
         body = f.read().decode('utf-8')
 
-    # パターンマッチでテキストが格納されている箇所を検知してリスト化する
-    find_text_list = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', body)
-    find_text_list_fmt = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_text_list] # 左右のタグを削除する
+    # テキスト要素を行ごとに一旦リスト化する
+    find_line_list = re.findall(r'\<w\:p.+?\<\/w\:p\>', body)
 
-    # テキストを結合してリストへ格納する
-    text_list_fmt = []
-    text_list_fmt.append(''.join(find_text_list_fmt))
+    # [[1行目 要素1, 1行目 要素2], [2行目 要素1, 2行目 要素2], ...] という形の多次元リストに変換する
+    for index, value in enumerate(find_line_list):
+        find_line_list[index] = re.findall(r'\<w\:t\>.+?\<\/w\:t\>', value)                         # 細切れの要素ごとにリスト化して格納する
+        find_line_list[index] = [s.lstrip('<w:t>').rstrip('</w:t>') for s in find_line_list[index]] # 細切れの要素ごとに付いている左右のタグを削除する
 
-    return text_list_fmt
+    # 多次元リスト中のテキストを結合して出力用のリストへ格納する
+    text_list = []
+    for i in find_line_list:
+        text_list.append(''.join(i))
+
+    return text_list
+
+
+'''
+■ PDF ファイルに書き込まれているテキストをリストにして返す関数
+
+PDF ファイルを扱える外部モジュール pdfminer.sys を利用してテキストを取り出します。
+ページごとにリストを生成したかったけど自分には難しかったので行ごとに取り出すことにしました。
+
+参考:
+https://self-development.info/%E3%80%90python%E3%80%91pdfminer%E3%81%A7pdf%E3%81%8B%E3%82%89%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%92%E6%8A%BD%E5%87%BA%E3%81%99%E3%82%8B/
+'''
+def make_pdf_text_list(src_file_path):
+
+    text = pdfm_hl.extract_text(src_file_path)
+    text_list = text.splitlines()
+
+    return text_list
 
 
 '''
@@ -180,13 +206,6 @@ def make_docx_text_list(src_file_path):
 '''
 def print_result(file_path, line_num, char_num, text):
     print('%s (%d, %d) : %s' % (file_path, line_num, char_num, text))
-
-
-'''
-■ 渡された情報をそのままプリントする関数（例外用）
-'''
-def print_result_error(file_path, txt, output_text):
-    print('%s : %s <%s>' % (file_path, txt, output_text))
 
 
 '''
@@ -207,7 +226,7 @@ def search_to_print_result(text_line_list, search_text, file_path, hit_num):
         # 正規表現検索が True でない場合は find() を使用する
         else:
             s = line.find(search_text)
-            if not s == -1:
+            if s >= 0:
                 print_result(file_path, line_num, s + 1, line.rstrip()) # 結果を出力する
                 hit_num += 1
 
