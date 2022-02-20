@@ -8,7 +8,7 @@ import utils
 
 print('\n')
 print('=========================')
-print('     🔍 Grep Office     ')
+print('       Grep Office       ')
 print('=========================')
 
 try:
