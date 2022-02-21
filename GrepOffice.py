@@ -69,14 +69,15 @@ try:
     # イテレータを利用してファイルパスの検知の度に検索を実行する
     for file_path in glob.iglob(search_dir, recursive=True):
 
-        search_file_num += 1
-
+        # ファイルパスの判定
         if (
             not re.search(setup.DETECT_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
             or re.search(setup.EXCLUDE_PATH, file_path) # 除外対象のファイルだったら処理をスキップ
-            or not os.path.isfile(file_path)            # ファイルが存在しなければ処理をスキップ
+            or not os.path.isfile(file_path)            # ファイルでなければ（ディレクトリだったら）処理をスキップ
         ):
             continue
+
+        search_file_num += 1
 
         # 拡張子によって条件分岐するための前処理
         root, ext = os.path.splitext(file_path)
@@ -107,7 +108,7 @@ try:
                     hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
                     continue
 
-            # Office 系でなかった場合はファイルを開いて検索する
+            # ここまでの処理で判定されなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
                 text_list = f.readlines()
                 hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
@@ -127,7 +128,7 @@ try:
 
         # Ctrl + C で処理を中断した場合は for 文を終了する
         except KeyboardInterrupt as e:
-            print('\nキーボード入力により処理を中断しました。\n今の時点でのヒット件数を出力します。')
+            print('\nキーボード入力により処理を中断しました。\n中断した時点でのヒット件数を出力します。')
             break
 
     print('\n----------------------------------------------------------')
@@ -135,7 +136,7 @@ try:
     print(f'{search_file_num} 点のファイル中 {hit_num} 件ヒットしました。')
 
     if UnicodeDecodeError_num:
-        print(f'\n{search_file_num} 点のファイル中、文字コードのエラーにより開けなかったファイルが {UnicodeDecodeError_num} 点ありました。\n画像などのバイナリファイルが存在した場合でもこのエラーが出ることがあります。')
+        print(f'\n{search_file_num} 点のファイル中、文字コードのエラーにより開けなかったファイルが {UnicodeDecodeError_num} 点ありました。\n画像や動画などのバイナリファイルが存在した場合でもこのエラーが出ることがあります。')
 
     if PermissionError_num:
         print(f'\n{search_file_num} 点のファイル中、アクセス権限のエラーにより開けなかったファイルが {PermissionError_num} 点ありました。\n対象のファイルを開いていたなどの理由でもこのエラーが出ることがあります。')
