@@ -1,5 +1,5 @@
 <!-- omit in toc -->
-# 🔍 Grep Office
+# Grep Office
 
 ![イメージ図](images/kv.png)
 
