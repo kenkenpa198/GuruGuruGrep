@@ -62,9 +62,9 @@ try:
     match_num_list = [] # 検索条件がマッチした件数を格納するリスト
 
     # インクリメント用変数の初期値を定義
-    search_file_num        = 0 # 検索対象のファイル総点数
-    UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総点数
-    PermissionError_num    = 0 # アクセス権限のエラーで開けなかったファイルの総点数
+    search_file_num        = 0 # 検索対象のファイル総件数
+    UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総件数
+    PermissionError_num    = 0 # アクセス権限のエラーで開けなかったファイルの総件数
 
     # 検索処理
     # イテレータを利用してファイルパスの検知の度に検索を実行する
@@ -140,13 +140,13 @@ try:
 
     print(f'{sum(match_num_list)} 件マッチしました。')
 
-    print(f'\n検索対象のファイル総点数                               : {search_file_num} 点')
+    print(f'\n検索対象のファイル総件数                               : {search_file_num} 件')
 
     if UnicodeDecodeError_num:
-        print(f'総点数のうち開けなかったファイル（文字コードエラー）   : {UnicodeDecodeError_num} 点')
+        print(f'総件数のうち開けなかったファイル（文字コードエラー）   : {UnicodeDecodeError_num} 件')
 
     if PermissionError_num:
-        print(f'総点数のうち開けなかったファイル（アクセス権限エラー） : {PermissionError_num} 点')
+        print(f'総件数のうち開けなかったファイル（アクセス権限エラー） : {PermissionError_num} 件')
 
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
