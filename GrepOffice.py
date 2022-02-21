@@ -59,12 +59,17 @@ try:
     print('\n▼ 検索結果')
     print('----------------------------------------------------------\n')
 
-    # 件数表示用の初期値を定義
-    hit_num = 0
+    # インクリメント用の初期値を定義
+    hit_num = 0                # 検索条件がヒットした件数
+    search_file_num = 0        # 検索したファイルの総点数
+    UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総点数
+    PermissionError_num = 0    # アクセス権限のエラーで開けなかったファイルの総点数
 
     # 検索処理
     # イテレータを利用してファイルパスの検知の度に検索を実行する
     for file_path in glob.iglob(search_dir, recursive=True):
+
+        search_file_num += 1
 
         if (
             not re.search(setup.DETECT_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
@@ -111,11 +116,29 @@ try:
         # ファイルが文字コードエラーで開けなかった場合はスキップする
         except UnicodeDecodeError as e:
             # utils.print_result_error(file_path, 'ファイルを読み込めませんでした。', e)
+            UnicodeDecodeError_num += 1
             continue
+
+        # アクセス権限のエラーで開けなかった場合はスキップする
+        except PermissionError as e:
+            PermissionError_num += 1
+            print(f'ぱーみっしょんえらー!今 {PermissionError_num} 件だよ')
+            continue
+
+        # Ctrl + C で処理を中断した場合は for 文を終了する
+        except KeyboardInterrupt as e:
+            print('\nキーボード入力により処理を中断しました。\n今の時点でのヒット件数を出力します。')
+            break
 
     print('\n----------------------------------------------------------')
 
-    print(f'{hit_num} 件ヒットしました。')
+    print(f'{search_file_num} 点のファイル中 {hit_num} 件ヒットしました。')
+
+    if UnicodeDecodeError_num:
+        print(f'\n{search_file_num} 点のファイル中、文字コードのエラーにより開けなかったファイルが {UnicodeDecodeError_num} 点ありました。\n画像などのバイナリファイルが存在した場合でもこのエラーが出ることがあります。')
+
+    if PermissionError_num:
+        print(f'\n{search_file_num} 点のファイル中、アクセス権限のエラーにより開けなかったファイルが {PermissionError_num} 点ありました。\n対象のファイルを開いていたなどの理由でもこのエラーが出ることがあります。')
 
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
