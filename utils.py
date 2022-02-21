@@ -227,23 +227,24 @@ def find_text(target_text, search_text):
 '''
 ■ 与えられた文字列をリストから検索して結果をプリントする関数
 引数で指定されたリストに対して「与えられた文字列を検索して結果を返す関数」を繰り返し処理し、
-結果が返ってくれば結果テキストをプリントし、引数で与えられたヒット件数をインクリメントする。
+結果が返ってくれば結果テキストをプリントし、マッチ件数をインクリメントする。
 
-ヒット件数は最終的に検索結果で表示するため、戻り値として返却する。
+マッチ件数は最終的に検索結果で表示するため、戻り値として返却する。
 '''
-def search_to_print_result(text_line_list, search_text, file_path, hit_num):
+def search_to_print_result(text_line_list, search_text, file_path):
     line_num = 0
+    match_num = 0
 
     for line in text_line_list:
         line_num += 1
 
         find_text_result = find_text(line, search_text)
         if find_text_result:
-            hit_num += 1
+            match_num += 1
 
             # 結果を整形しリストへ追加
             # 「ファイルパス (X行目, Y文字目) : テキスト」
             result_text = '%s (%d, %d) : %s' % (file_path, line_num, find_text_result[0], find_text_result[1])
             print(result_text)
 
-    return hit_num
+    return match_num

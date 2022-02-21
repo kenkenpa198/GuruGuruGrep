@@ -58,11 +58,13 @@ try:
     print('\n▼ 検索結果')
     print('----------------------------------------------------------\n')
 
-    # インクリメント用の初期値を定義
-    hit_num = 0                # 検索条件がヒットした件数
-    search_file_num = 0        # 検索したファイルの総点数
+    # マッチ件数合算用リストを定義
+    match_num_list = [] # 検索条件がマッチした件数を格納するリスト
+
+    # インクリメント用変数の初期値を定義
+    search_file_num        = 0 # 検索対象のファイル総点数
     UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総点数
-    PermissionError_num = 0    # アクセス権限のエラーで開けなかったファイルの総点数
+    PermissionError_num    = 0 # アクセス権限のエラーで開けなかったファイルの総点数
 
     # 検索処理
     # イテレータを利用してファイルパスの検知の度に検索を実行する
@@ -85,32 +87,37 @@ try:
             # .xlsx ファイルの場合の処理
             if ext == '.xlsx':
                 text_list = utils.make_xlsx_text_list(file_path)
-                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
+                match_num_list.append(match_num)
                 continue
 
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
                 text_list = utils.make_pptx_text_list(file_path)
-                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
+                match_num_list.append(match_num)
                 continue
 
             # .docx ファイルの場合の処理
             if ext == '.docx':
                 text_list = utils.make_docx_text_list(file_path)
-                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
+                match_num_list.append(match_num)
                 continue
 
             # .pdf ファイルの場合の処理（PDF の検索設定が True の場合のみ処理する）
             if setup.DETECT_PDF_FILE:
                 if ext == '.pdf':
                     text_list = utils.make_pdf_text_list(file_path)
-                    hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                    match_num = utils.search_to_print_result(text_list, search_txt, file_path)
+                    match_num_list.append(match_num)
                     continue
 
             # ここまでの処理で判定されなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
                 text_list = f.readlines()
-                hit_num = utils.search_to_print_result(text_list, search_txt, file_path, hit_num)
+                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
+                match_num_list.append(match_num)
                 continue
 
         # ファイルが文字コードエラーで開けなかった場合はスキップする
@@ -122,23 +129,24 @@ try:
         # アクセス権限のエラーで開けなかった場合はスキップする
         except PermissionError as e:
             PermissionError_num += 1
-            print(f'ぱーみっしょんえらー!今 {PermissionError_num} 件だよ')
             continue
 
         # Ctrl + C で処理を中断した場合は for 文を終了する
         except KeyboardInterrupt as e:
-            print('\nキーボード入力により処理を中断しました。\n中断した時点でのヒット件数を出力します。')
+            print('\nキーボード入力により処理を中断しました。\n中断した時点でのマッチ件数を出力します。')
             break
 
     print('\n----------------------------------------------------------')
 
-    print(f'{search_file_num} 点のファイル中 {hit_num} 件ヒットしました。')
+    print(f'{sum(match_num_list)} 件マッチしました。')
+
+    print(f'\n検索対象のファイル総点数                               : {search_file_num} 点')
 
     if UnicodeDecodeError_num:
-        print(f'\n{search_file_num} 点のファイル中、文字コードのエラーにより開けなかったファイルが {UnicodeDecodeError_num} 点ありました。\n画像や動画などのバイナリファイルが存在した場合でもこのエラーが出ることがあります。')
+        print(f'総点数のうち開けなかったファイル（文字コードエラー）   : {UnicodeDecodeError_num} 点')
 
     if PermissionError_num:
-        print(f'\n{search_file_num} 点のファイル中、アクセス権限のエラーにより開けなかったファイルが {PermissionError_num} 点ありました。\n対象のファイルを開いていたなどの理由でもこのエラーが出ることがあります。')
+        print(f'総点数のうち開けなかったファイル（アクセス権限エラー） : {PermissionError_num} 点')
 
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
