@@ -70,9 +70,9 @@ try:
 
         # ファイルパスの判定
         if (
-            not re.search(setup.DETECT_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
-            or re.search(setup.EXCLUDE_PATH, file_path) # 除外対象のファイルだったら処理をスキップ
-            or not os.path.isfile(file_path)            # ファイルでなければ（ディレクトリだったら）処理をスキップ
+            not os.path.isfile(file_path)                  # ファイルでなければ（ディレクトリだったら）処理をスキップ
+            or not re.search(setup.DETECT_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
+            or re.search(setup.EXCLUDE_PATH, file_path)    # 除外対象のファイルだったら処理をスキップ
         ):
             continue
 
