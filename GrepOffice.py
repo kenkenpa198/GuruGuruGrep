@@ -52,26 +52,34 @@ try:
 
     print('\n----------------------------------------------------------\n')
 
-    print('問題なければ Enter キーを押してください。')
-    input('中断する場合は Ctrl + C を押してください。')
+    print('Enter キーを押すと検索を開始します。')
+    input('キャンセルする場合は Ctrl + C を押してください。')
 
-    # 指定ディレクトリ以下に存在するファイルをリストへ格納する
-    file_path_list = [
-        p for p in glob.glob(search_dir, recursive=True) # 指定ディレクトリ以下に存在するファイルパスを再帰的に格納する
-        if re.search(setup.DETECT_PATH, p)               # 検索対象のファイルのみを格納する
-        if not re.search(setup.EXCLUDE_PATH, p)          # 除外対象のファイルは格納しない
-        if os.path.isfile(p)                             # 存在するファイルのみを格納する
-    ]
-
-    # for i in file_path_list:
-    #     print(i)
+    print('\n検索を開始します。')
+    print('ファイル数が多すぎると完了まで時間がかかる場合があります。')
+    print('中断する場合は Ctrl + C を押してください。')
 
     print('\n▼ 検索結果')
     print('----------------------------------------------------------\n')
 
-    # 検索処理
+    # 件数表示用の初期値を定義
     hit_num = 0
-    for file_path in file_path_list:
+
+    # 検索処理
+    # イテレータを利用してファイルパスの検知の度に検索を実行する
+    for file_path in glob.iglob(search_dir, recursive=True):
+
+        # 検索対象のファイルでなかったら処理をスキップ
+        if not re.search(setup.DETECT_PATH, file_path):
+            continue
+
+        # 除外対象のファイルだったら処理をスキップ
+        if re.search(setup.EXCLUDE_PATH, file_path):
+            continue
+
+        # ファイルが存在しなければ処理をスキップ
+        if not os.path.isfile(file_path):
+            continue
 
         # 拡張子によって条件分岐するための前処理
         root, ext = os.path.splitext(file_path)
