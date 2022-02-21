@@ -66,16 +66,11 @@ try:
     # イテレータを利用してファイルパスの検知の度に検索を実行する
     for file_path in glob.iglob(search_dir, recursive=True):
 
-        # 検索対象のファイルでなかったら処理をスキップ
-        if not re.search(setup.DETECT_PATH, file_path):
-            continue
-
-        # 除外対象のファイルだったら処理をスキップ
-        if re.search(setup.EXCLUDE_PATH, file_path):
-            continue
-
-        # ファイルが存在しなければ処理をスキップ
-        if not os.path.isfile(file_path):
+        if (
+            not re.search(setup.DETECT_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
+            or re.search(setup.EXCLUDE_PATH, file_path) # 除外対象のファイルだったら処理をスキップ
+            or not os.path.isfile(file_path)            # ファイルが存在しなければ処理をスキップ
+        ):
             continue
 
         # 拡張子によって条件分岐するための前処理
