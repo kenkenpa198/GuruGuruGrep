@@ -26,24 +26,24 @@ USE_REGEXP = False
 
 この設定を行うことで、負荷の軽減や検索の高速化が見込めます。
 
-    DETECT_PATH    : 検索を限定するファイルパスを指定（デフォルトは指定なし）
-    EXCLUSION_PATH : 検索から除外するファイルパスを指定（デフォルトは読み込む必要のなさそうな拡張子のファイルを指定済み）
+    FILTER_PATH    : 検索を限定するファイルパスを指定（デフォルトは指定なし）
+    EXCLUSION_PATH : 検索から除外するファイルパスを指定（デフォルトは画像系などバイナリファイルの拡張子を中心に指定済み）
 
 正規表現を用いるので、例えば拡張子を設定する場合は「.」を「\」でエスケープさせる指定と「$」での行末指定が必要です。
 下記の例を参考に設定してみてください。
 
     例1) ファイルの設定をしない場合
-    DETECT_PATH = r''
+    FILTER_PATH = r''
 
     例2) 拡張子が「.pptx」のファイルのみを設定したい場合
-    DETECT_PATH = r'\.pptx$'
+    FILTER_PATH = r'\.pptx$'
 
     例3) 拡張子が「.xlsx」のファイルまたは「old」を含むディレクトリやファイルを設定したい場合（「|」で OR 指定を行う）
-    DETECT_PATH = r'\.xlsx$|old'
+    FILTER_PATH = r'\.xlsx$|old'
 
 参考:
 基本的な正規表現一覧 | murashun.jp
 https://murashun.jp/article/programming/regular-expression.html
 '''
-DETECT_PATH = r''
-EXCLUDE_PATH = r'\.doc$|\.xls$|\.ppt$|\.msi$|\.exe$|\.obj$|\.pdb$|\.ilk$|\.res$|\.pch$|\.iobj$|\.ipdb$|\.zip$'
+FILTER_PATH = r''
+EXCLUDE_PATH = r'\.doc$|\.xls$|\.ppt$|\.msi$|\.exe$|\.obj$|\.pdb$|\.ilk$|\.res$|\.pch$|\.iobj$|\.ipdb$|\.zip$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.psd$|\.ai$|\.clip$'

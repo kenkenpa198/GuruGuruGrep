@@ -64,8 +64,8 @@ try:
     else:
         print('正規表現で検索   : 使用しない')
 
-    if setup.DETECT_PATH:
-        print('検索ファイル指定 : ' + setup.DETECT_PATH)
+    if setup.FILTER_PATH:
+        print('検索ファイル指定 : ' + setup.FILTER_PATH)
     else:
         print('検索ファイル指定 : 設定なし')
 
@@ -106,7 +106,7 @@ try:
         # ファイルパスの判定
         if (
             not os.path.isfile(file_path)                  # ファイルでなければ（ディレクトリだったら）処理をスキップ
-            or not re.search(setup.DETECT_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
+            or not re.search(setup.FILTER_PATH, file_path) # 検索対象のファイルでなかったら処理をスキップ
             or re.search(setup.EXCLUDE_PATH, file_path)    # 除外対象のファイルだったら処理をスキップ
         ):
             continue
