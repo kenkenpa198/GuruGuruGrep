@@ -6,6 +6,8 @@ import re
 import setup
 import utils
 
+import tqdm
+
 # コマンドラインオプション
 parser = argparse.ArgumentParser(description='a program is search for any files with grep.')
 parser.add_argument('-d', '--directory', help='assign a search directory path')
@@ -17,6 +19,10 @@ args = parser.parse_args()
 print('\n=========================')
 print('       Grep Office       ')
 print('=========================\n')
+
+'''
+■ 検索に利用する情報をインプットする処理
+'''
 
 # -r を受け取った場合は正規表現検索をオンにする
 if args.regexp:
@@ -40,7 +46,6 @@ try:
         search_dir_input = input('\n検索対象のディレクトリパスを入力してください: ')
 
     search_dir = os.path.join(search_dir_input, '**')
-
 
     if args.keyword:
         print('検索キーワードをコマンドライン引数で受け取りました。')
@@ -83,17 +88,23 @@ try:
     print('\n▼ 検索結果')
     print('----------------------------------------------------------\n')
 
-    # ヒット件数合算用リストを定義
-    hit_num_list = [] # 検索条件がヒットした件数を格納するリスト
+
+    '''
+    ■ メインとなる検索処理
+    '''
+
+
+    # 検索条件がヒットした件数を格納する合算用リストを定義
+    hit_num_list = []
 
     # インクリメント用変数の初期値を定義
     search_file_num        = 0 # 検索対象のファイル総件数
     UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総件数
     PermissionError_num    = 0 # アクセス権限のエラーで開けなかったファイルの総件数
 
-    # 検索処理
+
     # イテレータを利用してファイルパスの検知の度に検索を実行する
-    for file_path in glob.iglob(search_dir, recursive=True):
+    for file_path in tqdm.tqdm(glob.iglob(search_dir, recursive=True), desc='検索中……'):
 
         # ファイルパスの判定
         if (
@@ -162,7 +173,7 @@ try:
 
         # Ctrl + C で処理を中断した場合は for 文を終了する
         except KeyboardInterrupt as e:
-            print('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。')
+            tqdm.write('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。')
             break
 
     print('\n----------------------------------------------------------')

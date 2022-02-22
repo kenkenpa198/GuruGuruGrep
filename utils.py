@@ -2,6 +2,8 @@ import re
 import xml.etree.ElementTree as ET
 import zipfile
 
+import tqdm
+
 import setup
 
 # PDF の検索設定が True の場合、pdfminer.sys を import する
@@ -64,7 +66,7 @@ def search_to_print_from_list(target_text_list, keyword, file_path, page_name=No
 
         search_result = search_keyword(target_text, keyword, file_path, line_num, page_name)
         if search_result:
-            print(search_result)
+            tqdm.tqdm.write(search_result)
             hit_num += 1
 
     return hit_num
@@ -205,7 +207,7 @@ def search_to_print_from_pptx(src_file_path, keyword):
         # 検索 & 出力
         search_result = search_keyword(target_text, keyword, src_file_path, line_num, page_name='slide' + str(slide_num))
         if search_result:
-            print(search_result)
+            tqdm.tqdm.write(search_result)
             hit_num += 1
 
     return hit_num
@@ -304,7 +306,7 @@ def search_to_print_from_xlsx(src_file_path, keyword):
                 line_num += 1
                 search_result = search_keyword(' '.join(row_list), keyword, src_file_path, line_num, key)
                 if search_result:
-                    print(search_result)
+                    tqdm.tqdm.write(search_result)
                     hit_num += 1
 
     # JOIN_COLUMN : 列ごとの多次元リストを結合して検索する
@@ -328,7 +330,7 @@ def search_to_print_from_xlsx(src_file_path, keyword):
                 line_num += 1
                 search_result = search_keyword(' '.join(col_list), keyword, src_file_path, line_num, key)
                 if search_result:
-                    print(search_result)
+                    tqdm.tqdm.write(search_result)
                     hit_num += 1
 
 
@@ -336,7 +338,7 @@ def search_to_print_from_xlsx(src_file_path, keyword):
         # TODO: 作成する！
         if EXCEL_SETTING == 'SPLIT_ROW':
             # 行ごとの多次元リストをそのまま使う
-            print(row_multi_list)
+            tqdm.tqdm.write(row_multi_list)
             return
 
 
@@ -345,7 +347,7 @@ def search_to_print_from_xlsx(src_file_path, keyword):
         if EXCEL_SETTING == 'SPLIT_COLUMN':
             # 列ごとの多次元リストへ変換
             col_multi_list = [list(x) for x in zip(*row_multi_list)]
-            print(col_multi_list)
+            tqdm.tqdm.write(col_multi_list)
             return
 
     return hit_num
