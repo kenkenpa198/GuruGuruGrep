@@ -65,14 +65,14 @@ try:
         print('正規表現で検索   : 使用しない')
 
     if setup.FILTER_PATH:
-        print('検索ファイル指定 : ' + setup.FILTER_PATH)
+        print('検索の絞り込み   : ' + setup.FILTER_PATH)
     else:
-        print('検索ファイル指定 : 設定なし')
+        print('検索の絞り込み   : 設定なし')
 
     if setup.EXCLUDE_PATH:
-        print('除外ファイル指定 : ' + setup.EXCLUDE_PATH)
+        print('検索から除外     : ' + setup.EXCLUDE_PATH)
     else:
-        print('除外ファイル指定 : 設定なし')
+        print('検索から除外     : 設定なし')
 
     print('\n----------------------------------------------------------\n')
 
