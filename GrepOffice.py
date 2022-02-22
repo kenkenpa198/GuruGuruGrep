@@ -21,13 +21,13 @@ try:
 
     search_dir = os.path.join(search_dir_input, '**')
 
-    search_txt = input('検索条件とする文字列を入力してください: ')
+    keyword = input('検索条件とする文字列を入力してください: ')
 
     print('\n下記の検索条件で検索を実行します。')
     print('----------------------------------------------------------\n')
 
     print('検索ディレクトリ : ' + search_dir)
-    print('検索条件         : ' + search_txt)
+    print('検索条件         : ' + keyword)
 
     if setup.USE_REGEXP:
         print('正規表現で検索   : 使用する')
@@ -58,8 +58,8 @@ try:
     print('\n▼ 検索結果')
     print('----------------------------------------------------------\n')
 
-    # マッチ件数合算用リストを定義
-    match_num_list = [] # 検索条件がマッチした件数を格納するリスト
+    # ヒット件数合算用リストを定義
+    hit_num_list = [] # 検索条件がヒットした件数を格納するリスト
 
     # インクリメント用変数の初期値を定義
     search_file_num        = 0 # 検索対象のファイル総件数
@@ -85,39 +85,44 @@ try:
 
         try:
             # .xlsx ファイルの場合の処理
+            if ext == '.xlsxw':
+                target_text_list = utils.make_xlsx_text_list(file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num_list.append(hit_num)
+                continue
+
             if ext == '.xlsx':
-                text_list = utils.make_xlsx_text_list(file_path)
-                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
-                match_num_list.append(match_num)
+                hit_num = utils.search_to_print_from_list(file_path, keyword)
+                hit_num_list.append(hit_num)
                 continue
 
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
-                text_list = utils.make_pptx_text_list(file_path)
-                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
-                match_num_list.append(match_num)
+                target_text_list = utils.make_pptx_text_list(file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num_list.append(hit_num)
                 continue
 
             # .docx ファイルの場合の処理
             if ext == '.docx':
-                text_list = utils.make_docx_text_list(file_path)
-                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
-                match_num_list.append(match_num)
+                target_text_list = utils.make_docx_text_list(file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num_list.append(hit_num)
                 continue
 
             # .pdf ファイルの場合の処理（PDF の検索設定が True の場合のみ処理する）
             if setup.DETECT_PDF_FILE:
                 if ext == '.pdf':
-                    text_list = utils.make_pdf_text_list(file_path)
-                    match_num = utils.search_to_print_result(text_list, search_txt, file_path)
-                    match_num_list.append(match_num)
+                    target_text_list = utils.make_pdf_text_list(file_path)
+                    hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                    hit_num_list.append(hit_num)
                     continue
 
             # ここまでの処理で判定されなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
-                text_list = f.readlines()
-                match_num = utils.search_to_print_result(text_list, search_txt, file_path)
-                match_num_list.append(match_num)
+                target_text_list = f.readlines()
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num_list.append(hit_num)
                 continue
 
         # ファイルが文字コードエラーで開けなかった場合はスキップする
@@ -133,12 +138,12 @@ try:
 
         # Ctrl + C で処理を中断した場合は for 文を終了する
         except KeyboardInterrupt as e:
-            print('\nキーボード入力により処理を中断しました。\n中断した時点でのマッチ件数を出力します。')
+            print('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。')
             break
 
     print('\n----------------------------------------------------------')
 
-    print(f'{sum(match_num_list)} 件マッチしました。')
+    print(f'{sum(hit_num_list)} 件ヒットしました。')
 
     print(f'\n検索対象のファイル総件数                               : {search_file_num} 件')
 

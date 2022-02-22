@@ -8,6 +8,8 @@ import setup
 if setup.DETECT_PDF_FILE:
     import pdfminer.high_level as pdfm_hl
 
+import pandas as pd
+from itertools import chain as it_ch
 
 '''
 ■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数
@@ -197,54 +199,107 @@ def make_pdf_text_list(src_file_path):
 
 
 '''
-■ 与えられた文字列を検索して結果を返す関数
+■ 与えられた文字列を検索して結果テキストを返す関数
 
 正規表現検索設定のオンオフによって検索方法を切り替える。
-結果はタプルで返す。
-
-戻り値 1: マッチした○文字目
-戻り値 2: 右側の空白文字が削除されたテキスト
-
+マッチした場合、結果テキストの文字列を返す。
 マッチしなかった場合は何も返さない。
 '''
-def find_text(target_text, search_text):
+def search_keyword(target_text, keyword, file_path, line_num):
+
+    match_num = None
+    result_text = None
 
     # 正規表現検索が True の場合は正規表現マッチを使用する
     if setup.USE_REGEXP:
-        m = re.search(search_text, target_text)
+        m = re.search(keyword, target_text)
         if m:
-            return m.start() + 1, target_text.rstrip()
+            match_num = m.start() + 1
+            match_text = target_text.rstrip()
 
     # 正規表現検索が True でない場合は find() を使用する
     else:
-        s = target_text.find(search_text)
+        s = target_text.find(keyword)
         if s >= 0:
-            return s + 1, target_text.rstrip()
+            match_num = s + 1
+            match_text = target_text.rstrip()
 
-    return None
+    if match_num:
+        result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text)
+
+    return result_text
 
 
 '''
 ■ 与えられた文字列をリストから検索して結果をプリントする関数
 引数で指定されたリストに対して「与えられた文字列を検索して結果を返す関数」を繰り返し処理し、
-結果が返ってくれば結果テキストをプリントし、マッチ件数をインクリメントする。
+結果が返ってくれば結果テキストをプリントする。
 
-マッチ件数は最終的に検索結果で表示するため、戻り値として返却する。
+ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返却する。
 '''
-def search_to_print_result(text_line_list, search_text, file_path):
+def search_to_print_from_list(target_text_list, keyword, file_path):
     line_num = 0
-    match_num = 0
+    hit_num = 0
 
-    for line in text_line_list:
+    for target_text in target_text_list:
         line_num += 1
 
-        find_text_result = find_text(line, search_text)
-        if find_text_result:
-            match_num += 1
+        search_result = search_keyword(target_text, keyword, file_path, line_num)
+        if search_result:
+            print(search_result)
+            hit_num += 1
 
-            # 結果を整形しリストへ追加
-            # 「ファイルパス (X行目, Y文字目) : テキスト」
-            result_text = '%s (%d, %d) : %s' % (file_path, line_num, find_text_result[0], find_text_result[1])
-            print(result_text)
+    return hit_num
 
-    return match_num
+
+'''
+■ Excel 新関数
+TODO: 作成中
+'''
+def search_to_print_xlsx(src_file_path, search_text):
+
+    EXCEL_SETTING = 'JOIN_ROW'
+    text_list = []
+
+    match_num_xlsx = 0
+    # Excel ファイルを pandas.DataFrame の辞書として読み込み
+    df_dict = pd.read_excel(src_file_path, sheet_name=None, header=None, index_col=None)
+
+    # シートごとに多次元リストを生成する繰り返し処理
+    n = 0
+    for key in df_dict:
+
+        # 行ごとの多次元リストを生成
+        row_multi_list = df_dict[key].fillna('').to_numpy().tolist()
+
+        # 行ごとの多次元リストを分割したまま検索する
+        if EXCEL_SETTING == 'SPLIT_ROW':
+            # 行ごとの多次元リストをそのまま使う
+            print(row_multi_list)
+            return
+
+        # 行ごとの多次元リストを結合して検索する
+        if EXCEL_SETTING == 'JOIN_ROW':
+            # 行ごとの多次元リストを結合する
+            join_row_text = ''.join(map(str, list(it_ch.from_iterable(row_multi_list))))
+            text_list.append(join_row_text)
+
+
+        # 列ごとの多次元リストを分割したまま検索する
+        if EXCEL_SETTING == 'SPLIT_COLUMN':
+            # 列ごとの多次元リストへ変換
+            col_multi_list = [list(x) for x in zip(*row_multi_list)]
+            print(col_multi_list)
+            return
+
+        # 列ごとの多次元リストを結合して検索する
+        if EXCEL_SETTING == 'JOIN_COLUMN':
+            # 列ごとの多次元リストへ変換
+            col_multi_list = [list(x) for x in zip(*row_multi_list)]
+            print(col_multi_list)
+            return
+
+        n += 1
+    print(text_list)
+    match_num_xlsx += search_to_print_result(text_list, search_text, src_file_path)
+    return match_num_xlsx
