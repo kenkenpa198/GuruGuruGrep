@@ -162,15 +162,15 @@ https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
 
 TODO: パラグラフの文字列ごとに切り分けられそうなのでがんばる
 '''
-def make_pptx_text_list(src_file_path):
+def search_to_print_from_pptx(src_file_path, keyword):
 
     # テキスト情報が詰まった xml ファイルの指定
     xml_file_path_left = 'ppt/slides/slide'
     xml_file_path = 'ppt/slides/slide1.xml'
 
-    # テキスト情報を取り出せない場合は空文字を返す
+    # テキスト情報を取り出せない場合は 0 を返す
     if not is_gettable_text(src_file_path, xml_file_path):
-        return ''
+        return 0
 
     # zip アーカイブ化
     zip = zipfile.ZipFile(src_file_path)
@@ -181,9 +181,15 @@ def make_pptx_text_list(src_file_path):
         if zfp.filename.startswith(xml_file_path_left)
     ]
 
+    # インクリメント用変数を定義
+    slide_num = 0
+    line_num = 0
+    hit_num = 0
+
     # slideXX.xml ごとにテキスト情報のリスト化⇒結合を繰り返してテキストリストを作成
-    text_list_fmt = []
     for slide_path in slide_path_list:
+        slide_num += 1
+        line_num += 1
 
         # xml ファイルをデコードして読み込む
         with zip.open(slide_path, 'r') as f:
@@ -194,9 +200,15 @@ def make_pptx_text_list(src_file_path):
         find_text_list_fmt = [s.lstrip('<a:t>').rstrip('</a:t>') for s in find_text_list] # 左右のタグを削除する
 
         # テキストを結合してリストへ再格納する
-        text_list_fmt.append(''.join(find_text_list_fmt))
+        target_text = ''.join(find_text_list_fmt)
 
-    return text_list_fmt
+        # 検索 & 出力
+        search_result = search_keyword(target_text, keyword, src_file_path, line_num, page_name='slide' + str(slide_num))
+        if search_result:
+            print(search_result)
+            hit_num += 1
+
+    return hit_num
 
 
 '''

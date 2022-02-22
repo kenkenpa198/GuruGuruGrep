@@ -98,8 +98,7 @@ try:
 
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
-                target_text_list = utils.make_pptx_text_list(file_path)
-                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num = utils.search_to_print_from_pptx(file_path, keyword)
                 hit_num_list.append(hit_num)
                 continue
 
