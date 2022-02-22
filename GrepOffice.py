@@ -1,3 +1,4 @@
+import argparse
 import glob
 import os
 import re
@@ -5,14 +6,33 @@ import re
 import setup
 import utils
 
-print('\n')
-print('=========================')
+# コマンドラインオプション
+parser = argparse.ArgumentParser(description='a program is search for any files with grep.')
+parser.add_argument('-d', '--directory', help='assign a search directory path')
+parser.add_argument('-k', '--keyword', help='assign a keyword for search')
+parser.add_argument('-r', '--regexp', action='store_true', help='enable search with regular expression')
+
+args = parser.parse_args()
+
+print('\n=========================')
 print('       Grep Office       ')
-print('=========================')
+print('=========================\n')
+
+# -r を受け取った場合は正規表現検索をオンにする
+if args.regexp:
+    use_regexp_option = True
+    print('正規表現検索のコマンドライン引数を受け取りました。')
+else:
+    use_regexp_option = False
 
 try:
-    # 検索対象のディレクトリと検索するテキストを指定
-    search_dir_input = input('\n検索対象のディレクトリパスを入力してください: ')
+    # 検索対象のディレクトリを指定する
+    # -d を受け取った場合は指定されたディレクトリを挿入する
+    if args.directory:
+        print('検索対象のディレクトリパスをコマンドライン引数で受け取りました。')
+        search_dir_input = args.directory
+    else:
+        search_dir_input = input('検索対象のディレクトリパスを入力してください: ')
 
     while not os.path.exists(search_dir_input):
         print('\n入力されたディレクトリが見つかりませんでした。パスが正しいか確認してください。')
@@ -21,15 +41,20 @@ try:
 
     search_dir = os.path.join(search_dir_input, '**')
 
-    keyword = input('検索条件とする文字列を入力してください: ')
+
+    if args.keyword:
+        print('検索キーワードをコマンドライン引数で受け取りました。')
+        keyword = args.keyword
+    else:
+        keyword = input('検索キーワードを入力してください: ')
 
     print('\n下記の検索条件で検索を実行します。')
     print('----------------------------------------------------------\n')
 
     print('検索ディレクトリ : ' + search_dir)
-    print('検索条件         : ' + keyword)
+    print('検索キーワード   : ' + keyword)
 
-    if setup.USE_REGEXP:
+    if setup.USE_REGEXP or use_regexp_option:
         print('正規表現で検索   : 使用する')
     else:
         print('正規表現で検索   : 使用しない')
