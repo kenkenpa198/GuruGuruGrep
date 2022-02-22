@@ -10,7 +10,7 @@ import tqdm
 
 # コマンドラインオプション
 parser = argparse.ArgumentParser(description='a program is search for any files with grep.')
-parser.add_argument('-d', '--directory', help='assign a search directory path')
+parser.add_argument('-d', '--directory_path', help='assign a search directory path')
 parser.add_argument('-k', '--keyword', help='assign a keyword for search')
 parser.add_argument('-r', '--regexp', action='store_true', help='enable search with regular expression')
 
@@ -34,9 +34,9 @@ else:
 try:
     # 検索対象のディレクトリを指定する
     # -d を受け取った場合は指定されたディレクトリを挿入する
-    if args.directory:
+    if args.directory_path:
         print('検索対象のディレクトリパスをコマンドライン引数で受け取りました。')
-        search_dir_input = args.directory
+        search_dir_input = args.directory_path
     else:
         search_dir_input = input('検索対象のディレクトリパスを入力してください: ')
 
