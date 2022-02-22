@@ -74,11 +74,6 @@ try:
     else:
         print('除外ファイル指定 : 設定なし')
 
-    if setup.DETECT_PDF_FILE:
-        print('PDF ファイル     : 検索する')
-    else:
-        print('PDF ファイル     : 検索しない')
-
     print('\n----------------------------------------------------------\n')
 
     print('Enter キーを押すと検索を開始します。')
@@ -147,13 +142,12 @@ try:
                 hit_num_list.append(hit_num)
                 continue
 
-            # .pdf ファイルの場合の処理（PDF の検索設定が True の場合のみ処理する）
-            if setup.DETECT_PDF_FILE:
-                if ext == '.pdf':
-                    target_text_list = utils.make_pdf_text_list(file_path)
-                    hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
-                    hit_num_list.append(hit_num)
-                    continue
+            # .pdf ファイルの場合の処理
+            if ext == '.pdf':
+                target_text_list = utils.make_pdf_text_list(file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num_list.append(hit_num)
+                continue
 
             # ここまでの処理で判定されなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
@@ -179,7 +173,7 @@ try:
             break
 
     if KeyboardInterrupt_flag:
-        print(('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。'))
+        print('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。')
     else:
         print('検索を完了しました。')
 

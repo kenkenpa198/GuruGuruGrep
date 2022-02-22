@@ -47,18 +47,3 @@ https://murashun.jp/article/programming/regular-expression.html
 '''
 DETECT_PATH = r''
 EXCLUDE_PATH = r'\.doc$|\.xls$|\.ppt$|\.msi$|\.exe$|\.obj$|\.pdb$|\.ilk$|\.res$|\.pch$|\.iobj$|\.ipdb$|\.zip$'
-
-
-'''
-■ PDF の検索設定
-PDF ファイル（.pdf）の中身を検索可能にするオプションです。
-
-    True  : PDF ファイルを検索します。
-    False : PDF ファイルを検索しません。
-
-デフォルトは False 設定です。
-
-PDF 読み取り用の外部モジュール pdfminer.six のインストールが事前に必要です。
-インストール手順は README.md を参照してください。
-'''
-DETECT_PDF_FILE = False

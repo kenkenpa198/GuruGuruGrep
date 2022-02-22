@@ -2,16 +2,11 @@ import re
 import xml.etree.ElementTree as ET
 import zipfile
 
+import pdfminer.high_level as pdfm_hl
+import pandas as pd
 import tqdm
 
 import setup
-
-# PDF の検索設定が True の場合、pdfminer.sys を import する
-if setup.DETECT_PDF_FILE:
-    import pdfminer.high_level as pdfm_hl
-
-import pandas as pd
-
 
 '''
 ■ 与えられた文字列を検索して結果テキストを返す関数
