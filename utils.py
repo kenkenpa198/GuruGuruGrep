@@ -10,6 +10,66 @@ if setup.DETECT_PDF_FILE:
 
 import pandas as pd
 
+
+'''
+■ 与えられた文字列を検索して結果テキストを返す関数
+
+正規表現検索設定のオンオフによって検索方法を切り替える。
+マッチした場合、結果テキストの文字列を返す。
+マッチしなかった場合は何も返さない。
+'''
+def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
+
+    match_num = None
+    result_text = None
+
+    # 正規表現検索が True の場合は正規表現マッチを使用する
+    if setup.USE_REGEXP:
+        m = re.search(keyword, target_text)
+        if m:
+            match_num = m.start() + 1
+            match_text = target_text.rstrip()
+
+    # 正規表現検索が True でない場合は find() を使用する
+    else:
+        s = target_text.find(keyword)
+        if s >= 0:
+            match_num = s + 1
+            match_text = target_text.rstrip()
+
+    # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : 改行を削除したテキスト
+    if match_num and page_name:
+        result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text.replace('\n',''))
+
+    # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : 改行を削除したテキスト
+    if match_num and not page_name:
+        result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text.replace('\n',''))
+
+    return result_text
+
+
+'''
+■ 与えられた文字列をリストから検索して結果をプリントする関数
+引数で指定されたリストに対して「与えられた文字列を検索して結果を返す関数」を繰り返し処理し、
+結果が返ってくれば結果テキストをプリントする。
+
+ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返却する。
+'''
+def search_to_print_from_list(target_text_list, keyword, file_path, page_name=None):
+    line_num = 0
+    hit_num = 0
+
+    for target_text in target_text_list:
+        line_num += 1
+
+        search_result = search_keyword(target_text, keyword, file_path, line_num, page_name)
+        if search_result:
+            print(search_result)
+            hit_num += 1
+
+    return hit_num
+
+
 '''
 ■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数
 
@@ -197,65 +257,6 @@ def make_pdf_text_list(src_file_path):
     text_list = text.splitlines()
 
     return text_list
-
-
-'''
-■ 与えられた文字列を検索して結果テキストを返す関数
-
-正規表現検索設定のオンオフによって検索方法を切り替える。
-マッチした場合、結果テキストの文字列を返す。
-マッチしなかった場合は何も返さない。
-'''
-def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
-
-    match_num = None
-    result_text = None
-
-    # 正規表現検索が True の場合は正規表現マッチを使用する
-    if setup.USE_REGEXP:
-        m = re.search(keyword, target_text)
-        if m:
-            match_num = m.start() + 1
-            match_text = target_text.rstrip()
-
-    # 正規表現検索が True でない場合は find() を使用する
-    else:
-        s = target_text.find(keyword)
-        if s >= 0:
-            match_num = s + 1
-            match_text = target_text.rstrip()
-
-    # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : 改行を削除したテキスト
-    if match_num and page_name:
-        result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text.replace('\n',''))
-
-    # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : 改行を削除したテキスト
-    if match_num and not page_name:
-        result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text.replace('\n',''))
-
-    return result_text
-
-
-'''
-■ 与えられた文字列をリストから検索して結果をプリントする関数
-引数で指定されたリストに対して「与えられた文字列を検索して結果を返す関数」を繰り返し処理し、
-結果が返ってくれば結果テキストをプリントする。
-
-ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返却する。
-'''
-def search_to_print_from_list(target_text_list, keyword, file_path, page_name=None):
-    line_num = 0
-    hit_num = 0
-
-    for target_text in target_text_list:
-        line_num += 1
-
-        search_result = search_keyword(target_text, keyword, file_path, line_num, page_name)
-        if search_result:
-            print(search_result)
-            hit_num += 1
-
-    return hit_num
 
 
 '''
