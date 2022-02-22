@@ -99,6 +99,8 @@ def make_xlsx_text_list(src_file_path):
 
 参考:
 https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
+
+TODO: パラグラフの文字列ごとに切り分けられそうなのでがんばる
 '''
 def make_pptx_text_list(src_file_path):
 
@@ -223,13 +225,13 @@ def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
             match_num = s + 1
             match_text = target_text.rstrip()
 
-    # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : テキスト
+    # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : 改行を削除したテキスト
     if match_num and page_name:
-        result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text)
+        result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text.replace('\n',''))
 
-    # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : テキスト
+    # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : 改行を削除したテキスト
     if match_num and not page_name:
-        result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text)
+        result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text.replace('\n',''))
 
     return result_text
 
@@ -241,14 +243,14 @@ def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
 
 ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返却する。
 '''
-def search_to_print_from_list(target_text_list, keyword, file_path):
+def search_to_print_from_list(target_text_list, keyword, file_path, page_name=None):
     line_num = 0
     hit_num = 0
 
     for target_text in target_text_list:
         line_num += 1
 
-        search_result = search_keyword(target_text, keyword, file_path, line_num)
+        search_result = search_keyword(target_text, keyword, file_path, line_num, page_name)
         if search_result:
             print(search_result)
             hit_num += 1
@@ -287,9 +289,9 @@ def search_to_print_from_xlsx(src_file_path, keyword):
             # 多次元リスト中の行を結合して検索とプリント
             for row_list in row_multi_list:
                 line_num += 1
-                search_result = search_keyword(''.join(row_list), keyword, src_file_path, line_num, key)
+                search_result = search_keyword(' '.join(row_list), keyword, src_file_path, line_num, key)
                 if search_result:
-                    print(search_result.replace('\n',''))
+                    print(search_result)
                     hit_num += 1
 
     # JOIN_COLUMN : 列ごとの多次元リストを結合して検索する
@@ -311,9 +313,9 @@ def search_to_print_from_xlsx(src_file_path, keyword):
             # 多次元リスト中の行を結合して検索とプリント
             for col_list in col_multi_list:
                 line_num += 1
-                search_result = search_keyword(''.join(col_list), keyword, src_file_path, line_num, key)
+                search_result = search_keyword(' '.join(col_list), keyword, src_file_path, line_num, key)
                 if search_result:
-                    print(search_result.replace('\n',''))
+                    print(search_result)
                     hit_num += 1
 
 
