@@ -27,7 +27,7 @@ print('=========================\n')
 # -r を受け取った場合は正規表現検索をオンにする
 if args.regexp:
     use_regexp_option = True
-    print('正規表現検索のコマンドライン引数を受け取りました。')
+    print('正規表現検索を有効にするコマンドライン引数を受け取りました。')
 else:
     use_regexp_option = False
 
@@ -102,6 +102,8 @@ try:
     UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総件数
     PermissionError_num    = 0 # アクセス権限のエラーで開けなかったファイルの総件数
 
+    # Ctrl + C を受け取った時のフラグ用変数の初期値を定義
+    KeyboardInterrupt_flag = False
 
     # イテレータを利用してファイルパスの検知の度に検索を実行する
     for file_path in tqdm.tqdm(glob.iglob(search_dir, recursive=True), desc='検索中……'):
@@ -173,8 +175,13 @@ try:
 
         # Ctrl + C で処理を中断した場合は for 文を終了する
         except KeyboardInterrupt as e:
-            tqdm.write('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。')
+            KeyboardInterrupt_flag = True
             break
+
+    if KeyboardInterrupt_flag:
+        print(('\nキーボード入力により処理を中断しました。\n中断した時点での結果を出力します。'))
+    else:
+        print('検索を完了しました。')
 
     print('\n----------------------------------------------------------')
 
