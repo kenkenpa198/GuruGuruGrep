@@ -92,7 +92,7 @@ try:
                 continue
 
             if ext == '.xlsx':
-                hit_num = utils.search_to_print_from_list(file_path, keyword)
+                hit_num = utils.search_to_print_from_xlsx(file_path, keyword)
                 hit_num_list.append(hit_num)
                 continue
 

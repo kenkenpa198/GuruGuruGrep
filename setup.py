@@ -46,7 +46,7 @@ USE_REGEXP = False
 https://murashun.jp/article/programming/regular-expression.html
 '''
 DETECT_PATH = r''
-EXCLUDE_PATH = r'\.doc$|\.xls$|\.ppt$|\.msi$|\.exe$|\.obj$|\.pdb$|\.ilk$|\.res$|\.pch$|\.iobj$|\.ipdb$'
+EXCLUDE_PATH = r'\.doc$|\.xls$|\.ppt$|\.msi$|\.exe$|\.obj$|\.pdb$|\.ilk$|\.res$|\.pch$|\.iobj$|\.ipdb$|\.zip$'
 
 
 '''

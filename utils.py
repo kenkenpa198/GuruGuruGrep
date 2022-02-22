@@ -9,7 +9,6 @@ if setup.DETECT_PDF_FILE:
     import pdfminer.high_level as pdfm_hl
 
 import pandas as pd
-from itertools import chain as it_ch
 
 '''
 ■ Office ファイルからテキスト情報を取り出せるか確認するチェック用関数
@@ -205,7 +204,7 @@ def make_pdf_text_list(src_file_path):
 マッチした場合、結果テキストの文字列を返す。
 マッチしなかった場合は何も返さない。
 '''
-def search_keyword(target_text, keyword, file_path, line_num):
+def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
 
     match_num = None
     result_text = None
@@ -224,7 +223,12 @@ def search_keyword(target_text, keyword, file_path, line_num):
             match_num = s + 1
             match_text = target_text.rstrip()
 
-    if match_num:
+    # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : テキスト
+    if match_num and page_name:
+        result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text)
+
+    # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : テキスト
+    if match_num and not page_name:
         result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text)
 
     return result_text
@@ -253,53 +257,80 @@ def search_to_print_from_list(target_text_list, keyword, file_path):
 
 
 '''
-■ Excel 新関数
-TODO: 作成中
+■ Excel 用新関数
+Pandas モジュールを使って読み込みを行う関数。
+pandas.DataFrame から生成した多次元リストを基に検索を行う。
+
+事前設定によって出力の仕様を変更する。
 '''
-def search_to_print_xlsx(src_file_path, search_text):
 
-    EXCEL_SETTING = 'JOIN_ROW'
-    text_list = []
+EXCEL_SETTING = 'JOIN_COLUMN'
 
-    match_num_xlsx = 0
+def search_to_print_from_xlsx(src_file_path, keyword):
+
     # Excel ファイルを pandas.DataFrame の辞書として読み込み
-    df_dict = pd.read_excel(src_file_path, sheet_name=None, header=None, index_col=None)
+    df_dict = pd.read_excel(src_file_path, sheet_name=None, header=None, index_col=None, dtype=str)
 
-    # シートごとに多次元リストを生成する繰り返し処理
-    n = 0
-    for key in df_dict:
+    # JOIN_ROW : 行ごとの多次元リストを結合して検索する
+    if EXCEL_SETTING == 'JOIN_ROW':
 
-        # 行ごとの多次元リストを生成
-        row_multi_list = df_dict[key].fillna('').to_numpy().tolist()
+        # インクリメント用変数を定義
+        hit_num = 0
+
+        # シートごとに多次元リストを生成して検索する繰り返し処理
+        for key in df_dict:
+            line_num = 0
+
+            # 行ごとの多次元リストを生成
+            row_multi_list = df_dict[key].fillna('').to_numpy().tolist()
+
+            # 多次元リスト中の行を結合して検索とプリント
+            for row_list in row_multi_list:
+                line_num += 1
+                search_result = search_keyword(''.join(row_list), keyword, src_file_path, line_num, key)
+                if search_result:
+                    print(search_result.replace('\n',''))
+                    hit_num += 1
+
+    # JOIN_COLUMN : 列ごとの多次元リストを結合して検索する
+    if EXCEL_SETTING == 'JOIN_COLUMN':
+
+        # インクリメント用変数を定義
+        hit_num = 0
+
+        # シートごとに多次元リストを生成して検索する繰り返し処理
+        for key in df_dict:
+            line_num = 0
+
+            # 行ごとの多次元リストを生成
+            row_multi_list = df_dict[key].fillna('').to_numpy().tolist()
+
+            # 列ごとの多次元リストへ変換
+            col_multi_list = [list(x) for x in zip(*row_multi_list)]
+
+            # 多次元リスト中の行を結合して検索とプリント
+            for col_list in col_multi_list:
+                line_num += 1
+                search_result = search_keyword(''.join(col_list), keyword, src_file_path, line_num, key)
+                if search_result:
+                    print(search_result.replace('\n',''))
+                    hit_num += 1
+
 
         # 行ごとの多次元リストを分割したまま検索する
+        # TODO: 作成する！
         if EXCEL_SETTING == 'SPLIT_ROW':
             # 行ごとの多次元リストをそのまま使う
             print(row_multi_list)
             return
 
-        # 行ごとの多次元リストを結合して検索する
-        if EXCEL_SETTING == 'JOIN_ROW':
-            # 行ごとの多次元リストを結合する
-            join_row_text = ''.join(map(str, list(it_ch.from_iterable(row_multi_list))))
-            text_list.append(join_row_text)
-
 
         # 列ごとの多次元リストを分割したまま検索する
+        # TODO: 作成する！
         if EXCEL_SETTING == 'SPLIT_COLUMN':
             # 列ごとの多次元リストへ変換
             col_multi_list = [list(x) for x in zip(*row_multi_list)]
             print(col_multi_list)
             return
 
-        # 列ごとの多次元リストを結合して検索する
-        if EXCEL_SETTING == 'JOIN_COLUMN':
-            # 列ごとの多次元リストへ変換
-            col_multi_list = [list(x) for x in zip(*row_multi_list)]
-            print(col_multi_list)
-            return
-
-        n += 1
-    print(text_list)
-    match_num_xlsx += search_to_print_result(text_list, search_text, src_file_path)
-    return match_num_xlsx
+    return hit_num
