@@ -16,9 +16,9 @@ parser.add_argument('-r', '--regexp', action='store_true', help='enable search w
 
 args = parser.parse_args()
 
-print('\n=========================')
-print('       Grep Office       ')
-print('=========================\n')
+print('\n========================')
+print('      GuruGuruGrep       ')
+print('========================\n')
 
 '''
 ■ 検索に利用する情報をインプットする処理
@@ -192,4 +192,4 @@ try:
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
 
-print('\nGrep Office を終了します。\n')
+print('\nGuruGuruGrep を終了します。\n')
