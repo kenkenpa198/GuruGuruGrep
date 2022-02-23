@@ -17,7 +17,7 @@ import setup
 
 入力情報をテキスト形式で保存する。
 '''
-def export_input_data(export_dir_path, search_dir, keyword, regexp_flag=False, filter_path=None, exclude_path=None):
+def export_input_data(export_dir_path, search_dir, keyword, regexp_flag=False, filter_path=None, exclude_path=None, excel_search_setting=None):
     dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = f'{dt_now}_input.txt'
 
@@ -42,6 +42,11 @@ def export_input_data(export_dir_path, search_dir, keyword, regexp_flag=False, f
             f.write(f'検索から除外     : {setup.EXCLUDE_PATH}\n')
         else:
             f.write(f'検索から除外     : 設定なし\n')
+
+        if excel_search_setting:
+            f.write(f'Excel の検索設定 : {setup.EXCEL_SEARCH_SETTING}\n')
+        else:
+            f.write(f'Excel の検索設定 : 設定値が None のようです。setup.py をご確認ください。\n')
 
         f.write('\n----------------------------------------------------------\n')
 
@@ -360,7 +365,7 @@ pandas.DataFrame から生成した多次元リストを基に検索を行う。
 事前設定によって出力の仕様を変更する。
 '''
 
-EXCEL_SETTING = 'JOIN_ROW'
+setup.EXCEL_SEARCH_SETTING
 
 def search_to_print_from_xlsx(src_file_path, keyword, regexp_flag, ):
 
@@ -368,7 +373,7 @@ def search_to_print_from_xlsx(src_file_path, keyword, regexp_flag, ):
     df_dict = pd.read_excel(src_file_path, sheet_name=None, header=None, index_col=None, dtype=str)
 
     # JOIN_ROW : 行ごとの多次元リストを結合して検索する
-    if EXCEL_SETTING == 'JOIN_ROW':
+    if setup.EXCEL_SEARCH_SETTING == 'JOIN_ROW':
 
         # インクリメント用変数を定義
         hit_num = 0
@@ -389,7 +394,7 @@ def search_to_print_from_xlsx(src_file_path, keyword, regexp_flag, ):
                     hit_num += 1
 
     # JOIN_COLUMN : 列ごとの多次元リストを結合して検索する
-    if EXCEL_SETTING == 'JOIN_COLUMN':
+    if setup.EXCEL_SEARCH_SETTING == 'JOIN_COLUMN':
 
         # インクリメント用変数を定義
         hit_num = 0
@@ -415,18 +420,17 @@ def search_to_print_from_xlsx(src_file_path, keyword, regexp_flag, ):
 
         # 行ごとの多次元リストを分割したまま検索する
         # TODO: 作成する！
-        if EXCEL_SETTING == 'SPLIT_ROW':
+        if setup.EXCEL_SEARCH_SETTING == 'SPLIT_ROW':
             # 行ごとの多次元リストをそのまま使う
-            tqdm.tqdm.write(row_multi_list)
+            tqdm.tqdm.write('Excel 検索設定 SPLIT_ROW は未実装です。他の設定を指定してください。')
             return
 
 
         # 列ごとの多次元リストを分割したまま検索する
         # TODO: 作成する！
-        if EXCEL_SETTING == 'SPLIT_COLUMN':
+        if setup.EXCEL_SEARCH_SETTING == 'SPLIT_COLUMN':
             # 列ごとの多次元リストへ変換
-            col_multi_list = [list(x) for x in zip(*row_multi_list)]
-            tqdm.tqdm.write(col_multi_list)
+            tqdm.tqdm.write('Excel 検索設定 SPLIT_COLUMN は未実装です。他の設定を指定してください。')
             return
 
     return hit_num

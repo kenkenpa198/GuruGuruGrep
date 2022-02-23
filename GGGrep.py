@@ -100,6 +100,11 @@ try:
         else:
             print(f'検索から除外     : 設定なし')
 
+        if setup.EXCEL_SEARCH_SETTING:
+            print(f'Excel の検索設定 : {setup.EXCEL_SEARCH_SETTING}')
+        else:
+            print(f'Excel の検索設定 : 設定値が None のようです。setup.py をご確認ください。')
+
         print('\n----------------------------------------------------------')
 
         print('上記の情報で検索を行います。')
@@ -262,7 +267,7 @@ try:
     if export_flag in ('c', 'C', 'ｃ', 'Ｃ'):
         export_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'export')
 
-        export_input_path  = utils.export_input_data(export_dir, search_dir, keyword, regexp_flag, setup.FILTER_PATH, setup.EXCLUDE_PATH)
+        export_input_path  = utils.export_input_data(export_dir, search_dir, keyword, regexp_flag, setup.FILTER_PATH, setup.EXCLUDE_PATH, setup.EXCEL_SEARCH_SETTING)
         export_result_path = utils.export_result_csv(export_dir, utils.result_multi_list)
 
         print(f'\n検索結果を以下のファイルへ出力しました。')
