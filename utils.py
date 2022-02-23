@@ -1,3 +1,6 @@
+import csv
+import datetime
+import os
 import re
 import xml.etree.ElementTree as ET
 import zipfile
@@ -8,11 +11,87 @@ import tqdm
 
 import setup
 
+
+'''
+■ 入力情報をテキストで出力する関数
+
+入力情報をテキスト形式で保存する。
+'''
+def export_input_data(export_dir_path, search_dir, keyword, use_regexp=False, filter_path=None, exclude_path=None):
+    dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = f'{dt_now}_input.txt'
+
+    os.makedirs(export_dir_path, exist_ok=True)
+    with open(os.path.join(export_dir_path, filename), 'w', newline='') as f:
+        f.write('▼検索情報\n----------------------------------------------------------\n\n')
+
+        f.write(f'検索ディレクトリ : {search_dir}\n')
+        f.write(f'検索キーワード   : {keyword}\n')
+
+        if use_regexp:
+            f.write(f'正規表現で検索   : 使用する\n')
+        else:
+            f.write(f'正規表現で検索   : 使用しない\n')
+
+        if filter_path:
+            f.write(f'検索の絞り込み   : {setup.FILTER_PATH}\n')
+        else:
+            f.write(f'検索の絞り込み   : 設定なし\n')
+
+        if exclude_path:
+            f.write(f'検索から除外     : {setup.EXCLUDE_PATH}\n')
+        else:
+            f.write(f'検索から除外     : 設定なし\n')
+
+        f.write('\n----------------------------------------------------------\n')
+
+    return os.path.join(export_dir_path, filename)
+
+
+
+'''
+■ CSV 生成用の多次元リストへ追加する関数
+
+検索結果をCSV 出力用の多次元リストに追加する。
+与えられたファイルパスはディレクトリパスとファイル名に分割して格納する。
+'''
+result_multi_list = []
+
+def append_result_multi_list(file_path, line_num, char_num, match_text='-', page_name='-'):
+
+    filename = os.path.basename(file_path)
+    dir_path = os.path.dirname(file_path)
+
+    result_list = [dir_path, filename, page_name, line_num, char_num, match_text]
+    result_multi_list.append(result_list)
+    return result_multi_list
+
+
+
+'''
+■ 結果を CSV で出力する関数
+
+渡された多次元リストを CSV として出力する。
+'''
+
+def export_result_csv(export_dir_path, multi_list):
+    dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = f'{dt_now}_result.csv'
+
+    os.makedirs(export_dir_path, exist_ok=True)
+    with open(os.path.join(export_dir_path, filename), 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['dir_path', 'filename', 'page_num', 'line_num', 'char_num', 'match_text'])
+        writer.writerows(multi_list)
+
+    return os.path.join(export_dir_path, filename)
+
+
 '''
 ■ 与えられた文字列を検索して結果テキストを返す関数
 
 正規表現検索設定のオンオフによって検索方法を切り替える。
-マッチした場合、結果テキストの文字列を返す。
+マッチした場合は結果テキストの文字列を返し、 CSV 出力用の多次元リストへ追加する。
 マッチしなかった場合は何も返さない。
 '''
 def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
@@ -37,10 +116,12 @@ def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
     # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : 改行を削除したテキスト
     if match_num and page_name:
         result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text.replace('\n',''))
+        append_result_multi_list(file_path, line_num, match_num, match_text, page_name)
 
     # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : 改行を削除したテキスト
     if match_num and not page_name:
         result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text.replace('\n',''))
+        append_result_multi_list(file_path, line_num, match_num, match_text)
 
     return result_text
 
@@ -50,7 +131,7 @@ def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
 引数で指定されたリストに対して「与えられた文字列を検索して結果を返す関数」を繰り返し処理し、
 結果が返ってくれば結果テキストをプリントする。
 
-ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返却する。
+ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返す。
 '''
 def search_to_print_from_list(target_text_list, keyword, file_path, page_name=None):
     line_num = 0
@@ -61,8 +142,8 @@ def search_to_print_from_list(target_text_list, keyword, file_path, page_name=No
 
         search_result = search_keyword(target_text, keyword, file_path, line_num, page_name)
         if search_result:
-            tqdm.tqdm.write(search_result)
             hit_num += 1
+            tqdm.tqdm.write(search_result)
 
     return hit_num
 

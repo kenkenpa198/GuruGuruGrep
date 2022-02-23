@@ -16,12 +16,8 @@ parser.add_argument('-r', '--regexp', action='store_true', help='enable search w
 
 args = parser.parse_args()
 
-print('\n========================')
-print('      GuruGuruGrep       ')
-print('========================\n')
-
 '''
-■ 検索に利用する情報をインプットする処理
+■ コマンドライン引数の受け取り処理
 '''
 
 # -r を受け取った場合は正規表現検索をオンにする
@@ -31,13 +27,30 @@ if args.regexp:
 else:
     use_regexp_option = False
 
+# -d を受け取った場合は指定されたディレクトリを変数へ格納しておく
+search_dir_input = None
+if args.directory_path:
+    print('検索対象のディレクトリパスをコマンドライン引数で受け取りました。')
+    search_dir_input = args.directory_path
+
+# -k を受け取った場合は検索キーワードを変数へ格納しておく
+keyword = None
+if args.keyword:
+    print('検索キーワードをコマンドライン引数で受け取りました。')
+    keyword = args.keyword
+
+'''
+■ GGGrep を起動 ～ 検索に利用する情報をインプットする処理
+'''
+
+print('\n========================')
+print('      GuruGuruGrep       ')
+print('========================\n')
+
+
 try:
-    # 検索対象のディレクトリを指定する
-    # -d を受け取った場合は指定されたディレクトリを挿入する
-    if args.directory_path:
-        print('検索対象のディレクトリパスをコマンドライン引数で受け取りました。')
-        search_dir_input = args.directory_path
-    else:
+    # 検索対象ディレクトリ引数による指定がなかった場合は入力をリクエストする
+    if not search_dir_input:
         search_dir_input = input('検索対象のディレクトリパスを入力してください: ')
 
     while not os.path.exists(search_dir_input):
@@ -45,34 +58,35 @@ try:
         print('中断する場合は Ctrl + C を押してください。')
         search_dir_input = input('\n検索対象のディレクトリパスを入力してください: ')
 
+    # 検索対象ディレクトリへサブディレクトリの指定を追加する
     search_dir = os.path.join(search_dir_input, '**')
 
-    if args.keyword:
-        print('検索キーワードをコマンドライン引数で受け取りました。')
-        keyword = args.keyword
-    else:
+    # 検索キーワード引数による指定がなかった場合は入力をリクエストする
+    if not keyword:
         keyword = input('検索キーワードを入力してください: ')
 
     print('\n下記の検索条件で検索を実行します。')
     print('----------------------------------------------------------\n')
 
-    print('検索ディレクトリ : ' + search_dir)
-    print('検索キーワード   : ' + keyword)
+    print(f'検索ディレクトリ : {search_dir}')
+    print(f'検索キーワード   : {keyword}')
 
     if setup.USE_REGEXP or use_regexp_option:
-        print('正規表現で検索   : 使用する')
+        print(f'正規表現で検索   : 使用する')
+        use_regexp_flag = True
     else:
-        print('正規表現で検索   : 使用しない')
+        print(f'正規表現で検索   : 使用しない')
+        use_regexp_flag = False
 
     if setup.FILTER_PATH:
-        print('検索の絞り込み   : ' + setup.FILTER_PATH)
+        print(f'検索の絞り込み   : {setup.FILTER_PATH}')
     else:
-        print('検索の絞り込み   : 設定なし')
+        print(f'検索の絞り込み   : 設定なし')
 
     if setup.EXCLUDE_PATH:
-        print('検索から除外     : ' + setup.EXCLUDE_PATH)
+        print(f'検索から除外     : {setup.EXCLUDE_PATH}')
     else:
-        print('検索から除外     : 設定なし')
+        print(f'検索から除外     : 設定なし')
 
     print('\n----------------------------------------------------------\n')
 
@@ -188,6 +202,18 @@ try:
 
     if PermissionError_num:
         print(f'総件数のうち開けなかったファイル（アクセス権限エラー） : {PermissionError_num} 件')
+
+    export_flag = input('\n終了する場合は Enter キーを押してください。\n検索結果を CSV ファイルとして出力する場合は C を送信してください: ')
+
+    if export_flag in ('c', 'C', 'ｃ', 'Ｃ'):
+        export_dir = os.path.join(os.getcwd(), 'export')
+
+        export_input_path  = utils.export_input_data(export_dir, search_dir, keyword, use_regexp_flag, setup.FILTER_PATH, setup.EXCLUDE_PATH)
+        export_result_path = utils.export_result_csv(export_dir, utils.result_multi_list)
+
+        print(f'\n検索結果を以下のファイルへ出力しました。')
+        print(f'入力情報: {export_input_path}')
+        print(f'検索結果: {export_result_path}')
 
 except KeyboardInterrupt as e:
     print('\nキーボード入力により処理を中断しました。')
