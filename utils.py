@@ -17,7 +17,7 @@ import setup
 
 入力情報をテキスト形式で保存する。
 '''
-def export_input_data(export_dir_path, search_dir, keyword, use_regexp=False, filter_path=None, exclude_path=None):
+def export_input_data(export_dir_path, search_dir, keyword, regexp_flag=False, filter_path=None, exclude_path=None):
     dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     filename = f'{dt_now}_input.txt'
 
@@ -28,7 +28,7 @@ def export_input_data(export_dir_path, search_dir, keyword, use_regexp=False, fi
         f.write(f'検索ディレクトリ : {search_dir}\n')
         f.write(f'検索キーワード   : {keyword}\n')
 
-        if use_regexp:
+        if regexp_flag:
             f.write(f'正規表現で検索   : 使用する\n')
         else:
             f.write(f'正規表現で検索   : 使用しない\n')
@@ -82,7 +82,10 @@ def export_result_csv(export_dir_path, multi_list):
     with open(os.path.join(export_dir_path, filename), 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['dir_path', 'filename', 'page_num', 'line_num', 'char_num', 'match_text'])
-        writer.writerows(multi_list)
+
+        # リストの NULL 判定
+        if multi_list:
+            writer.writerows(multi_list)
 
     return os.path.join(export_dir_path, filename)
 
@@ -94,19 +97,19 @@ def export_result_csv(export_dir_path, multi_list):
 マッチした場合は結果テキストの文字列を返し、 CSV 出力用の多次元リストへ追加する。
 マッチしなかった場合は何も返さない。
 '''
-def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
+def search_keyword(target_text, keyword, regexp_flag, file_path, line_num, page_name=None,):
 
     match_num = None
     result_text = None
 
-    # 正規表現検索が True の場合は正規表現マッチを使用する
-    if setup.USE_REGEXP:
+    # 正規表現検索フラグが True の場合は正規表現マッチを使用する
+    if regexp_flag:
         m = re.search(keyword, target_text)
         if m:
             match_num = m.start() + 1
             match_text = target_text.rstrip()
 
-    # 正規表現検索が True でない場合は find() を使用する
+    # 正規表現検索フラグが True でない場合は find() を使用する
     else:
         s = target_text.find(keyword)
         if s >= 0:
@@ -133,14 +136,14 @@ def search_keyword(target_text, keyword, file_path, line_num, page_name=None):
 
 ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返す。
 '''
-def search_to_print_from_list(target_text_list, keyword, file_path, page_name=None):
+def search_to_print_from_list(target_text_list, keyword, regexp_flag, file_path, page_name=None):
     line_num = 0
     hit_num = 0
 
     for target_text in target_text_list:
         line_num += 1
 
-        search_result = search_keyword(target_text, keyword, file_path, line_num, page_name)
+        search_result = search_keyword(target_text, keyword, regexp_flag, file_path, line_num, page_name)
         if search_result:
             hit_num += 1
             tqdm.tqdm.write(search_result)
@@ -240,7 +243,7 @@ https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
 
 TODO: パラグラフの文字列ごとに切り分けられそうなのでがんばる
 '''
-def search_to_print_from_pptx(src_file_path, keyword):
+def search_to_print_from_pptx(src_file_path, keyword, regexp_flag, ):
 
     # テキスト情報が詰まった xml ファイルの指定
     xml_file_path_left = 'ppt/slides/slide'
@@ -281,7 +284,7 @@ def search_to_print_from_pptx(src_file_path, keyword):
         target_text = ''.join(find_text_list_fmt)
 
         # 検索 & 出力
-        search_result = search_keyword(target_text, keyword, src_file_path, line_num, page_name='slide' + str(slide_num))
+        search_result = search_keyword(target_text, keyword, regexp_flag, src_file_path, line_num, page_name='slide' + str(slide_num))
         if search_result:
             tqdm.tqdm.write(search_result)
             hit_num += 1
@@ -357,9 +360,9 @@ pandas.DataFrame から生成した多次元リストを基に検索を行う。
 事前設定によって出力の仕様を変更する。
 '''
 
-EXCEL_SETTING = 'JOIN_COLUMN'
+EXCEL_SETTING = 'JOIN_ROW'
 
-def search_to_print_from_xlsx(src_file_path, keyword):
+def search_to_print_from_xlsx(src_file_path, keyword, regexp_flag, ):
 
     # Excel ファイルを pandas.DataFrame の辞書として読み込み
     df_dict = pd.read_excel(src_file_path, sheet_name=None, header=None, index_col=None, dtype=str)
@@ -380,7 +383,7 @@ def search_to_print_from_xlsx(src_file_path, keyword):
             # 多次元リスト中の行を結合して検索とプリント
             for row_list in row_multi_list:
                 line_num += 1
-                search_result = search_keyword(' '.join(row_list), keyword, src_file_path, line_num, key)
+                search_result = search_keyword(' '.join(row_list), keyword, regexp_flag, src_file_path, line_num, key)
                 if search_result:
                     tqdm.tqdm.write(search_result)
                     hit_num += 1
@@ -404,7 +407,7 @@ def search_to_print_from_xlsx(src_file_path, keyword):
             # 多次元リスト中の行を結合して検索とプリント
             for col_list in col_multi_list:
                 line_num += 1
-                search_result = search_keyword(' '.join(col_list), keyword, src_file_path, line_num, key)
+                search_result = search_keyword(' '.join(col_list), keyword, regexp_flag, src_file_path, line_num, key)
                 if search_result:
                     tqdm.tqdm.write(search_result)
                     hit_num += 1

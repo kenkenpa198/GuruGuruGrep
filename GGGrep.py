@@ -20,13 +20,6 @@ args = parser.parse_args()
 ■ コマンドライン引数の受け取り処理
 '''
 
-# -r を受け取った場合は正規表現検索をオンにする
-if args.regexp:
-    use_regexp_option = True
-    print('正規表現検索を有効にするコマンドライン引数を受け取りました。')
-else:
-    use_regexp_option = False
-
 # -d を受け取った場合は指定されたディレクトリを変数へ格納しておく
 search_dir_input = None
 if args.directory_path:
@@ -39,6 +32,13 @@ if args.keyword:
     print('検索キーワードをコマンドライン引数で受け取りました。')
     keyword = args.keyword
 
+# -r を受け取った場合は正規表現検索をオンにする
+if args.regexp:
+    use_regexp_option = True
+    print('正規表現検索を有効にするコマンドライン引数を受け取りました。')
+else:
+    use_regexp_option = False
+
 '''
 ■ GGGrep を起動 ～ 検索に利用する情報をインプットする処理
 '''
@@ -49,7 +49,7 @@ print('========================\n')
 
 
 try:
-    # 検索対象ディレクトリ引数による指定がなかった場合は入力をリクエストする
+    # -d 引数による検索ディレクトリパス指定がなかった場合は入力をリクエストする
     if not search_dir_input:
         search_dir_input = input('検索対象のディレクトリパスを入力してください: ')
 
@@ -61,7 +61,7 @@ try:
     # 検索対象ディレクトリへサブディレクトリの指定を追加する
     search_dir = os.path.join(search_dir_input, '**')
 
-    # 検索キーワード引数による指定がなかった場合は入力をリクエストする
+    # -k 引数による検索キーワード指定がなかった場合は入力をリクエストする
     if not keyword:
         keyword = input('検索キーワードを入力してください: ')
 
@@ -73,10 +73,10 @@ try:
 
     if setup.USE_REGEXP or use_regexp_option:
         print(f'正規表現で検索   : 使用する')
-        use_regexp_flag = True
+        regexp_flag = True
     else:
         print(f'正規表現で検索   : 使用しない')
-        use_regexp_flag = False
+        regexp_flag = False
 
     if setup.FILTER_PATH:
         print(f'検索の絞り込み   : {setup.FILTER_PATH}')
@@ -134,39 +134,39 @@ try:
             # .xlsx ファイルの場合の処理
             if ext == '.xlsxw':
                 target_text_list = utils.make_xlsx_text_list(file_path)
-                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, regexp_flag, file_path)
                 hit_num_list.append(hit_num)
                 continue
 
             if ext == '.xlsx':
-                hit_num = utils.search_to_print_from_xlsx(file_path, keyword)
+                hit_num = utils.search_to_print_from_xlsx(file_path, keyword, regexp_flag)
                 hit_num_list.append(hit_num)
                 continue
 
             # .pptx ファイルの場合の処理
             if ext == '.pptx':
-                hit_num = utils.search_to_print_from_pptx(file_path, keyword)
+                hit_num = utils.search_to_print_from_pptx(file_path, keyword, regexp_flag)
                 hit_num_list.append(hit_num)
                 continue
 
             # .docx ファイルの場合の処理
             if ext == '.docx':
                 target_text_list = utils.make_docx_text_list(file_path)
-                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, regexp_flag, file_path)
                 hit_num_list.append(hit_num)
                 continue
 
             # .pdf ファイルの場合の処理
             if ext == '.pdf':
                 target_text_list = utils.make_pdf_text_list(file_path)
-                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, regexp_flag, file_path)
                 hit_num_list.append(hit_num)
                 continue
 
             # ここまでの処理で判定されなかった場合はファイルを開いて検索する
             with open(file_path, encoding='utf-8') as f:
                 target_text_list = f.readlines()
-                hit_num = utils.search_to_print_from_list(target_text_list, keyword, file_path)
+                hit_num = utils.search_to_print_from_list(target_text_list, keyword, regexp_flag, file_path)
                 hit_num_list.append(hit_num)
                 continue
 
@@ -206,9 +206,9 @@ try:
     export_flag = input('\n終了する場合は Enter キーを押してください。\n検索結果を CSV ファイルとして出力する場合は C を送信してください: ')
 
     if export_flag in ('c', 'C', 'ｃ', 'Ｃ'):
-        export_dir = os.path.join(os.getcwd(), 'export')
+        export_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'export')
 
-        export_input_path  = utils.export_input_data(export_dir, search_dir, keyword, use_regexp_flag, setup.FILTER_PATH, setup.EXCLUDE_PATH)
+        export_input_path  = utils.export_input_data(export_dir, search_dir, keyword, regexp_flag, setup.FILTER_PATH, setup.EXCLUDE_PATH)
         export_result_path = utils.export_result_csv(export_dir, utils.result_multi_list)
 
         print(f'\n検索結果を以下のファイルへ出力しました。')
