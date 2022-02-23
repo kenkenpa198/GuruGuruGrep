@@ -7,8 +7,8 @@ GuruGuruGrep（以下「GGGrep」）は、指定ディレクトリより下層�
 
 - プレーンテキストファイルに加えて Word 、 Excel 、 PowerPoint 、PDF のファイルの検索に対応
 - 正規表現検索に対応
-- CLI ベースなので動作が軽快
-- テキストベースでの出力なので検索結果を基にした調査や整形が行いやすい
+- CLI ベースのツールなので動作が軽快
+- 検索結果はテキストベースでの出力なので、検索結果を基にした調査や整形が行いやすい
 - bat ファイルを利用したエクスプローラーからの実行とコマンドラインからの実行の両方に対応
 
 ……といった内容が本ツールの特色になります。
@@ -188,7 +188,7 @@ WSL2 や MacOS などを利用している方はこちらでご利用くださ�
 1. PowerShell や Terminal などを開く。
 2. 下記の方法などで実行する。
    1. 展開したディレクトリに `cd` し、 `python3 GuruGuruGrep.py` で実行する。
-   2. フルパス指定で `/dir/ctory/path/python3 GuruGuruGrep.py` を実行する。
+   2. フルパス指定で `/dire/ctory/path/python3 GuruGuruGrep.py` を実行する。
 3. 以降の手順は bat ファイルでの手順と同様です。
 
 下記のコマンドライン引数での指定にも対応しています。
@@ -200,7 +200,7 @@ WSL2 や MacOS などを利用している方はこちらでご利用くださ�
 -r                    # 正規表現検索を有効にする
 
 # 例
-> python3 GuruGuruGrep.py -d /dir/ctory/path -k ねこ -r
+> python3 GuruGuruGrep.py -d /dire/ctory/path -k ねこ -r
 ```
 
 実行パスのエイリアスを登録しておくと手軽に実行できてオススメです。
