@@ -9,7 +9,7 @@ chcp 65001
 
 echo GuruGuruGrep.py を実行します。
 
-python GuruGuruGrep.py
+python GGGrep.py
 
 echo 終了するには何らかのキーを押してください。
 pause
