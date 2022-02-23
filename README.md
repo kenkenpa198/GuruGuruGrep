@@ -1,6 +1,7 @@
 <!-- omit in toc -->
 # GuruGuruGrep
 
+<!-- TODO: KV を変更する -->
 ![イメージ図](images/kv.png)
 
 GuruGuruGrep（以下「GGGrep」）は、指定ディレクトリより下層に存在するファイルに対して指定されたキーワードでぐるぐると Grep 検索を行うツールです。
