@@ -162,6 +162,7 @@ try:
         search_file_num        = 0 # 検索対象のファイル総件数
         UnicodeDecodeError_num = 0 # 文字コードエラーで開けなかったファイルの総件数
         PermissionError_num    = 0 # アクセス権限のエラーで開けなかったファイルの総件数
+        ValueError_num         = 0 # ファイルの値エラーで開けなかったファイルの総件数
 
         # Ctrl + C キー を受け取った時のフラグ用変数の初期値を定義
         KeyboardInterrupt_flag = False
@@ -235,6 +236,11 @@ try:
                 PermissionError_num += 1
                 continue
 
+            # ファイルの値エラーで開けなかった場合はスキップする
+            # Linux 環境で実行した際、pandas が Excel を読み込む時にファイルを開いたままだだとこのエラーが出る
+            except ValueError as e:
+                ValueError_num += 1
+                continue
 
     # Ctrl + C キー で処理を中断した場合はメッセージを変更する
     # わざわざ条件分岐させなくてもいいけど、tqdm のプログレス表示とごちゃついて見づらかったので実装している
@@ -258,7 +264,11 @@ try:
     if UnicodeDecodeError_num:
         print(f'総件数のうち開けなかったファイル（文字コードエラー）   : {UnicodeDecodeError_num} 件')
     if PermissionError_num:
-        print(f'総件数のうち開けなかったファイル（アクセス権限エラー） : {PermissionError_num} 件')
+        print(f'総件数のうち開けなかったファイル（アクセス権限エラー） : {PermissionError_num} 件 ※')
+    if ValueError_num:
+        print(f'総件数のうち開けなかったファイル（ファイルの値エラー） : {ValueError_num} 件 ※')
+    if PermissionError_num or ValueError_num:
+        print(f'\n※ 開いたままのファイルがある場合もこのエラーが出ることがあります。')
 
     export_flag = input('\n終了する場合は Enter キーを押してください。\n検索結果を CSV ファイルとして出力する場合は c を送信してください\n: ')
 
