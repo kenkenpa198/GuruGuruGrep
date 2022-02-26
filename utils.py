@@ -1,12 +1,159 @@
+import csv
+import datetime
+import os
 import re
 import xml.etree.ElementTree as ET
 import zipfile
 
+import pdfminer.high_level as pdfm_hl
+import pandas as pd
+import tqdm
+
 import setup
 
-# PDF の検索設定が True の場合、pdfminer.sys を import する
-if setup.DETECT_PDF_FILE:
-    import pdfminer.high_level as pdfm_hl
+
+'''
+■ 入力情報をテキストで出力する関数
+
+入力情報をテキスト形式で保存する。
+'''
+def export_input_data(export_dir_path, search_dir, keyword, regexp_flag=False, filter_path=None, exclude_path=None, excel_search_setting=None):
+    dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = f'{dt_now}_input.txt'
+
+    os.makedirs(export_dir_path, exist_ok=True)
+    with open(os.path.join(export_dir_path, filename), 'w', newline='') as f:
+        f.write('▼検索情報\n----------------------------------------------------------\n\n')
+
+        f.write(f'検索ディレクトリ : {search_dir}\n')
+        f.write(f'検索キーワード   : {keyword}\n')
+
+        if regexp_flag:
+            f.write(f'正規表現で検索   : 使用する\n')
+        else:
+            f.write(f'正規表現で検索   : 使用しない\n')
+
+        if filter_path:
+            f.write(f'検索の絞り込み   : {setup.FILTER_PATH}\n')
+        else:
+            f.write(f'検索の絞り込み   : 設定なし\n')
+
+        if exclude_path:
+            f.write(f'検索から除外     : {setup.EXCLUDE_PATH}\n')
+        else:
+            f.write(f'検索から除外     : 設定なし\n')
+
+        if excel_search_setting:
+            f.write(f'Excel の検索設定 : {setup.EXCEL_SEARCH_SETTING}\n')
+        else:
+            f.write(f'Excel の検索設定 : 設定値が None のようです。setup.py をご確認ください。\n')
+
+        f.write('\n----------------------------------------------------------\n')
+
+    return os.path.join(export_dir_path, filename)
+
+
+
+'''
+■ CSV 生成用の多次元リストへ追加する関数
+
+検索結果をCSV 出力用の多次元リストに追加する。
+与えられたファイルパスはディレクトリパスとファイル名に分割して格納する。
+'''
+result_multi_list = []
+
+def append_result_multi_list(file_path, line_num, char_num, match_text='-', page_name='-'):
+
+    filename = os.path.basename(file_path)
+    dir_path = os.path.dirname(file_path)
+
+    result_list = [dir_path, filename, page_name, line_num, char_num, match_text]
+    result_multi_list.append(result_list)
+    return result_multi_list
+
+
+
+'''
+■ 結果を CSV で出力する関数
+
+渡された多次元リストを CSV として出力する。
+'''
+
+def export_result_csv(export_dir_path, multi_list):
+    dt_now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = f'{dt_now}_result.csv'
+
+    os.makedirs(export_dir_path, exist_ok=True)
+    with open(os.path.join(export_dir_path, filename), 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['dir_path', 'filename', 'page_num', 'line_num', 'char_num', 'match_text'])
+
+        # リストの NULL 判定
+        if multi_list:
+            writer.writerows(multi_list)
+
+    return os.path.join(export_dir_path, filename)
+
+
+'''
+■ 与えられた文字列を検索して結果テキストを返す関数
+
+正規表現検索設定のオンオフによって検索方法を切り替える。
+マッチした場合は結果テキストの文字列を返し、 CSV 出力用の多次元リストへ追加する。
+マッチしなかった場合は何も返さない。
+'''
+def search_keyword(target_text, keyword, regexp_flag, file_path, line_num, page_name=None,):
+
+    match_num = None
+    result_text = None
+
+    # 正規表現検索フラグが True の場合は正規表現マッチを使用する
+    if regexp_flag:
+        m = re.search(keyword, target_text)
+        if m:
+            match_num = m.start() + 1
+            match_text = target_text.rstrip()
+
+    # 正規表現検索フラグが True でない場合は find() を使用する
+    else:
+        s = target_text.find(keyword)
+        if s >= 0:
+            match_num = s + 1
+            match_text = target_text.rstrip()
+
+    # ページ名を表示しない場合: ディレクトリパス (行番号, 列番号) : 改行を削除したテキスト
+    if match_num and page_name:
+        result_text = '%s (%s, %d, %d) : %s' % (file_path, page_name, line_num, match_num, match_text.replace('\n',''))
+        append_result_multi_list(file_path, line_num, match_num, match_text, page_name)
+
+    # ページ名を表示しない場合: ディレクトリパス (ページ名, 行番号, 列番号) : 改行を削除したテキスト
+    if match_num and not page_name:
+        result_text = '%s (%d, %d) : %s' % (file_path, line_num, match_num, match_text.replace('\n',''))
+        append_result_multi_list(file_path, line_num, match_num, match_text)
+
+    return result_text
+
+
+'''
+■ 与えられた文字列をリストから検索して結果をプリントする関数
+引数で指定されたリストに対して「与えられた文字列を検索して結果を返す関数」を繰り返し処理し、
+結果が返ってくれば結果テキストをプリントする。
+
+ヒット件数はヒットごとにインクリメントし、最終的に合算するため戻り値として返す。
+'''
+def search_to_print_from_list(target_text_list, keyword, regexp_flag, file_path, page_name=None):
+    line_num = 0
+    hit_num = 0
+
+    for target_text in target_text_list:
+        line_num += 1
+
+        search_result = search_keyword(target_text, keyword, regexp_flag, file_path, line_num, page_name)
+        if search_result:
+            hit_num += 1
+            tqdm.tqdm.write(search_result)
+
+    return hit_num
 
 
 '''
@@ -14,10 +161,10 @@ if setup.DETECT_PDF_FILE:
 
 .xlsx .pptx .docx が空のファイルの場合、zip アーカイブ化できなかったり
 テキスト情報が詰まった xml ファイルが存在しなかったりしてエラーを吐いていたので
-テキスト情報を取り出せるか否かの事前チェックを行う関数です。
+テキスト情報を取り出せるか否かの事前チェックを行う関数。
 
-ファイルによって以下のように違いがあるようなので、どの場合でも検出できるようにしています。
-    - 空の .xlsx の場合: zip ファイルとして扱えるけど、xml ファイルが存在しない
+ファイルによって以下のように違いがあるようなので、どの場合でも検出できるようにしている。
+    - 空の .xlsx の場合: zip ファイルとして扱えるが、xml ファイルが存在しない
     - 空の .pptx の場合: zip ファイルとしてそもそも扱えない
     - 空の .docx の場合: zip ファイルとしてそもそも扱えない
 '''
@@ -40,14 +187,14 @@ def is_gettable_text(check_file_path, xml_file_path):
 ■ .xlsx ファイルに書き込まれているテキストをリストにして返す関数
 
 .xlsx や .docx .pptx などの Office 系ファイルの実体は zip ファイルだそう。
-なので zip ファイルとして展開ができ、また展開されたディレクトリ内にはテキストや画像データが一式詰まっています。
+なので zip ファイルとして展開ができ、また展開されたディレクトリ内にはテキストや画像データが一式詰まっている。
 
 この特性を利用して、xlsx ファイルを zip アーカイブファイルとして読み込み、
-テキスト情報が詰まった xml ファイルからテキスト情報を抜き出してリスト形式で返すのがこの関数の役目です。
-パワーポイント用、ワード用の関数も同じような感じです。
+テキスト情報が詰まった xml ファイルからテキスト情報を抜き出してリスト形式で返すのがこの関数の役目。
+パワーポイント用、ワード用の関数も同じような感じ。
 
 テキスト情報が詰まった xml ファイルはツリー状のファイル形式でそのままだと扱いにくいので、
-組み込みの xml モジュールを使って要素を抜き出しています。
+組み込みの xml モジュールを使って要素を抜き出している。
 
 参考:
 https://yuukou-exp.plus/handle-xlsx-with-python-intro/
@@ -86,28 +233,30 @@ def make_xlsx_text_list(src_file_path):
 ■ .pptx ファイルに書き込まれているテキストをリストにして返す関数
 
 前述の関数のパワーポイント版。
-展開まではエクセル用と同じですが、パワーポイントの場合はスライドごとに xml ファイルが分かれているので
-先にスライドごとのファイルパスを格納したリストを生成し、それをベースにしてテキストを格納したリストを作成しています。
+展開まではエクセル用と同じだが、パワーポイントの場合はスライドごとに xml ファイルが分かれているので
+先にスライドごとのファイルパスを格納したリストを生成し、それをベースにしてテキストを格納したリストを作成している。
 
-パワーポイント版関数のテキストの検知はエクセル版と違い正規表現のパターンマッチを利用しています。
-たぶんエクセル版と同じように子階層を掘っていくやり方でもできると思いますが、
-階層がエクセルよりも深いようで記述が冗長になりそうだったのでこちらを採用しています。
+パワーポイント版関数のテキストの検知はエクセル版と違い正規表現のパターンマッチを利用している。
+たぶんエクセル版と同じように子階層を掘っていくやり方でもできると思うが、
+階層がエクセルよりも深いようで記述が冗長になりそうだったのでこちらを採用している。
 
 パワーポイントの xml に記述されたテキストは空白や文字の種類を境に
-テキストが細切れになっているため、ページごとに文字を結合しています。
+テキストが細切れになっているため、ページごとに文字を結合している。
 
 参考:
 https://qiita.com/kaityo256/items/2977d53e70bbffd4d601
+
+TODO: パラグラフの文字列ごとに切り分けられそうなのでがんばる
 '''
-def make_pptx_text_list(src_file_path):
+def search_to_print_from_pptx(src_file_path, keyword, regexp_flag, ):
 
     # テキスト情報が詰まった xml ファイルの指定
     xml_file_path_left = 'ppt/slides/slide'
     xml_file_path = 'ppt/slides/slide1.xml'
 
-    # テキスト情報を取り出せない場合は空文字を返す
+    # テキスト情報を取り出せない場合は 0 を返す
     if not is_gettable_text(src_file_path, xml_file_path):
-        return ''
+        return 0
 
     # zip アーカイブ化
     zip = zipfile.ZipFile(src_file_path)
@@ -118,9 +267,15 @@ def make_pptx_text_list(src_file_path):
         if zfp.filename.startswith(xml_file_path_left)
     ]
 
+    # インクリメント用変数を定義
+    slide_num = 0
+    line_num = 0
+    hit_num = 0
+
     # slideXX.xml ごとにテキスト情報のリスト化⇒結合を繰り返してテキストリストを作成
-    text_list_fmt = []
     for slide_path in slide_path_list:
+        slide_num += 1
+        line_num += 1
 
         # xml ファイルをデコードして読み込む
         with zip.open(slide_path, 'r') as f:
@@ -131,18 +286,24 @@ def make_pptx_text_list(src_file_path):
         find_text_list_fmt = [s.lstrip('<a:t>').rstrip('</a:t>') for s in find_text_list] # 左右のタグを削除する
 
         # テキストを結合してリストへ再格納する
-        text_list_fmt.append(''.join(find_text_list_fmt))
+        target_text = ''.join(find_text_list_fmt)
 
-    return text_list_fmt
+        # 検索 & 出力
+        search_result = search_keyword(target_text, keyword, regexp_flag, src_file_path, line_num, page_name='slide' + str(slide_num))
+        if search_result:
+            tqdm.tqdm.write(search_result)
+            hit_num += 1
+
+    return hit_num
 
 
 '''
 ■ .docx ファイルに書き込まれているテキストをリストにして返す関数
 
-前述の関数のワード版。処理の流れは前述の関数と同様です。
+前述の関数のワード版。処理の流れは前述の関数と同様。
 
 ワードの xml ファイルの場合は、ひとつの xml ファイルの中に細切れになったテキストが格納されているようなイメージ。
-なのでパワーポイントと同様に正規表現のパターンマッチ + 文字の結合を行っています。
+なのでパワーポイントと同様に正規表現のパターンマッチ + 文字の結合を行っている。
 
 パワーポイント版のようにページごとにファイルが分けられているのではないため、ページごとの行番号の出力は不可能そう。
 そういう情報が保存されていればできそうなので調べてみてもいいかも？
@@ -197,48 +358,79 @@ def make_pdf_text_list(src_file_path):
 
 
 '''
-■ 結果を出力する関数
+■ Excel 用新関数
+Pandas モジュールを使って読み込みを行う関数。
+pandas.DataFrame から生成した多次元リストを基に検索を行う。
 
-与えられた引数を基に結果テキストを整形しプリントする関数です。
-以下の形で整形して出力します。
-
-「ファイルパス (X行目, Y文字目) : テキスト」
+事前設定によって出力の仕様を変更する。
 '''
-def print_result(file_path, line_num, char_num, text):
-    print('%s (%d, %d) : %s' % (file_path, line_num, char_num, text))
+
+setup.EXCEL_SEARCH_SETTING
+
+def search_to_print_from_xlsx(src_file_path, keyword, regexp_flag, ):
+
+    # Excel ファイルを pandas.DataFrame の辞書として読み込み
+    df_dict = pd.read_excel(src_file_path, sheet_name=None, header=None, index_col=None, dtype=str)
+
+    # JOIN_ROW : 行ごとの多次元リストを結合して検索する
+    if setup.EXCEL_SEARCH_SETTING == 'JOIN_ROW':
+
+        # インクリメント用変数を定義
+        hit_num = 0
+
+        # シートごとに多次元リストを生成して検索する繰り返し処理
+        for key in df_dict:
+            line_num = 0
+
+            # 行ごとの多次元リストを生成
+            row_multi_list = df_dict[key].fillna('').to_numpy().tolist()
+
+            # 多次元リスト中の行を結合して検索とプリント
+            for row_list in row_multi_list:
+                line_num += 1
+                search_result = search_keyword(' '.join(row_list), keyword, regexp_flag, src_file_path, line_num, key)
+                if search_result:
+                    tqdm.tqdm.write(search_result)
+                    hit_num += 1
+
+    # JOIN_COLUMN : 列ごとの多次元リストを結合して検索する
+    if setup.EXCEL_SEARCH_SETTING == 'JOIN_COLUMN':
+
+        # インクリメント用変数を定義
+        hit_num = 0
+
+        # シートごとに多次元リストを生成して検索する繰り返し処理
+        for key in df_dict:
+            line_num = 0
+
+            # 行ごとの多次元リストを生成
+            row_multi_list = df_dict[key].fillna('').to_numpy().tolist()
+
+            # 列ごとの多次元リストへ変換
+            col_multi_list = [list(x) for x in zip(*row_multi_list)]
+
+            # 多次元リスト中の行を結合して検索とプリント
+            for col_list in col_multi_list:
+                line_num += 1
+                search_result = search_keyword(' '.join(col_list), keyword, regexp_flag, src_file_path, line_num, key)
+                if search_result:
+                    tqdm.tqdm.write(search_result)
+                    hit_num += 1
 
 
-'''
-■ 与えられた文字列をリストから検索して結果を繰り返し出力する関数
-'''
-def search_to_print_result(text_line_list, search_text, file_path, hit_num):
+        # 行ごとの多次元リストを分割したまま検索する
+        # TODO: 作成する！
+        if setup.EXCEL_SEARCH_SETTING == 'SPLIT_ROW':
+            # 行ごとの多次元リストをそのまま使う
+            tqdm.tqdm.write('Excel 検索設定 SPLIT_ROW は未実装です。他の設定を指定してください。')
+            return
 
-    line_num = 1
-    for line in text_line_list:
 
-        # 正規表現検索が True の場合は正規表現マッチを使用する
-        if setup.USE_REGEXP:
-            m = re.search(search_text, line)
-            if m:
-                print_result(file_path, line_num, m.start() + 1, line.rstrip()) # 結果を出力する
-                hit_num += 1
+        # 列ごとの多次元リストを分割したまま検索する
+        # TODO: 作成する！
+        if setup.EXCEL_SEARCH_SETTING == 'SPLIT_COLUMN':
+            # 列ごとの多次元リストへ変換
+            tqdm.tqdm.write('Excel 検索設定 SPLIT_COLUMN は未実装です。他の設定を指定してください。')
+            return
 
-        # 正規表現検索が True でない場合は find() を使用する
-        else:
-            s = line.find(search_text)
-            if s >= 0:
-                print_result(file_path, line_num, s + 1, line.rstrip()) # 結果を出力する
-                hit_num += 1
-
-        line_num += 1
     return hit_num
-
-
-'''
-■ 与えられたファイルパスリストと検索条件テキストに対して検索を実行する関数
-
-前述の検索 & 出力用関数をファイルパスリストに対して繰り返し実行します。
-拡張子によって展開用関数を変更します。
-
-TODO: メイン py ファイルから切り出して作成する
-'''
